@@ -35,3 +35,9 @@ def remove_meaningless_data(tx):
     """ Remove meaningless -999 values from training dataset."""
     tx[tx == -999] = np.NaN
     return tx
+
+def standardize(x):
+    mean =  np.nanmean(x,0) #dim D | or center the data directly : centered_data = x - np.mean(x,axis=0)
+    std = np.nanstd(x,0) 
+    return (x - mean) / std
+    
