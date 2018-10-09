@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""a function used to compute the loss."""
+"""Utilitary functions."""
 
 import numpy as np
 
