@@ -15,10 +15,18 @@ def calculate_mae(e):
 
 
 def compute_loss(y, tx, w):
-    """Calculate the loss.
-
-    You can calculate the loss using mse or mae.
-    """
+    """Calculate the mse loss."""
     e = y - tx.dot(w)
     return calculate_mse(e)
-    # return calculate_mae(e)
+
+def compute_gradient(y, tx, w):
+    """Compute the gradient."""
+    err = y - tx.dot(w)
+    grad = -tx.T.dot(err) / len(err)
+    return grad, err
+
+def compute_stoch_gradient(y, tx, w):
+    """Compute a stochastic gradient."""
+    err = y - tx.dot(w)
+    grad = -tx.T.dot(err) / len(err)
+    return grad, err
