@@ -30,3 +30,8 @@ def compute_stoch_gradient(y, tx, w):
     err = y - tx.dot(w)
     grad = -tx.T.dot(err) / len(err)
     return grad, err
+
+def remove_meaningless_data(tx):
+    """ Remove meaningless -999 values from training dataset."""
+    tx[tx == -999] = np.NaN
+    return tx
