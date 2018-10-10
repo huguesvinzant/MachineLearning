@@ -15,10 +15,10 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     # Define parameters 
     weights = initial_w
     for n_iter in range(max_iters):
-        # compute loss, gradient
+        # compute loss and gradient
         grad, err = compute_gradient(y, tx, weights)
         loss = calculate_mse(err)
-        # gradient weights by descent update
+        # gradient weights through descent update
         weights = weights - gamma * grad
     return weights, loss
 
@@ -29,7 +29,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     weights = initial_w 
     for n_iter in range(max_iters):
         for y_batch, tx_batch in batch_iter(y, tx, batch_size=batch_size, num_batches=1):
-            # compute a stochastic gradient and loss
+            # compute a stochastic gradient
             grad, _ = compute_stoch_gradient(y_batch, tx_batch, weights)
             # update weights through the stochastic gradient update
             weights = weights - gamma * grad
@@ -39,10 +39,13 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
 
 
 def ridge_regression(y, tx, lambda_):
-    ''' Explicit solution for the weights'''
+    ''' Explicit solution for the weights using ridge regression'''
+    # compute another lambda to simplifie notation
     lambda_prime = lambda_ * 2 * len(y)
+    # compute explicite solution for the weights
     inverse = np.linalg.inv(np.transpose(tx) @ tx + lambda_prime * np.identity(tx.shape[1]))
     weights = inverse @ np.transpose(tx) @ y
+    # calculate loss
     loss = compute_loss(y, tx, weights)
     return weights, loss
 
