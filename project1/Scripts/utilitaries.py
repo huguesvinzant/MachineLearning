@@ -31,6 +31,30 @@ def compute_stoch_gradient(y, tx, w):
     grad = -tx.T.dot(err) / len(err)
     return grad, err
 
+def meaningless_to_nan(tx):
+    """Remove meaningless -999 values (as explained in the guidelines) 
+        from training dataset by converting them into NaN."""
+    tx[tx == -999] = np.NaN
+    return tx
+
+def nan_proportion(tx):
+    """Calculate and display the proportion [0,1] of NaN per feature (column)."""
+    n_samples = tx.shape[0]
+    n_features = tx.shape[1]
+    #init. matrix that will contain proportions
+    prop_nan = np.zeros((2,30))
+    
+    for feature in range(n_features):
+        n_nan = 0
+        for sample in range(n_samples):
+            if np.isnan(tx[sample,feature]):
+                n_nan += 1
+                prop_nan[0,feature] = feature
+                prop_nan[1,feature] = n_nan/n_samples
+    return prop_nan
+
+
+#This function does two things while it should do only one ! 
 def remove_meaningless_data(tx, ratio):
     """Remove features with more than 'ratio' of NaN"""
     tx[tx == -999] = np.NaN
@@ -50,7 +74,7 @@ def remove_meaningless_data(tx, ratio):
     return tx
 
 def standardize(tx):
-    """Standardize the data along the columns"""
+    """Standardize the data along the feature_wise ignoring NaN entries."""
     mean_tx = np.nanmean(tx, axis = 0)
     centered_tx = tx - mean_tx
     std_tx = np.nanstd(centered_tx)
@@ -59,7 +83,7 @@ def standardize(tx):
     return standardized_tx
     
 def PCA(tx, k):
-    """Apply PCA to a given set of datapoints in d-dimension"""
+    """Apply PCA to a given set of datapoints in D-dimension"""
     cov_matrix = np.cov(tx.T)
     eigenValues, eigenVectors = np.linalg.eig(cov_matrix)
     
