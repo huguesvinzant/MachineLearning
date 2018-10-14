@@ -5,8 +5,12 @@ Grid Search
 """
 
 import numpy as np
-from costs import compute_loss
 
+def compute_loss(y, tx, w):
+    """compute the loss by mse."""
+    e = y - tx.dot(w)
+    mse = e.dot(e) / (2 * len(e))
+    return mse
 
 def generate_w(num_intervals):
     """Generate a grid of values for w0 and w1."""
@@ -15,7 +19,7 @@ def generate_w(num_intervals):
     return w0, w1
 
 
-def grid_search(y, tx, w0, w1):
+def grid_search(y, tx, w0,w1):
     """Algorithm for grid search."""
     losses = np.zeros((len(w0), len(w1)))
     # compute loss for each combination of w0 and w1.
