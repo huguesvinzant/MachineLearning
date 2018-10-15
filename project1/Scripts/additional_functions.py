@@ -1,6 +1,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from implementations import *
 
 
 def build_poly(x, degree):
