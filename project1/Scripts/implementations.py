@@ -24,7 +24,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     return weights, loss
 
 
-def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
+def least_squares_SGD(y, tx, initial_w, max_iters, gamma):  # does not seem to work
     """Calculate linear regression using stochastic gradient descent."""
     # Define parameters 
     weights = initial_w 
@@ -44,8 +44,9 @@ def ridge_regression(y, tx, lambda_):
     # compute another lambda to simplify notation
     lambda_prime = lambda_ * 2 * len(y)
     # compute explicit solution for the weights
-    inverse = np.linalg.inv(np.transpose(tx) @ tx + lambda_prime * np.identity(tx.shape[1]))
-    weights = inverse @ np.transpose(tx) @ y
+    a = np.transpose(tx) @ tx + lambda_prime * np.identity(tx.shape[1])
+    b = np.transpose(tx) @ y
+    weights = np.linalg.solve(a, b)
     # calculate loss
     loss = compute_loss(y, tx, weights)
     return weights, loss
