@@ -4,15 +4,35 @@ import matplotlib.pyplot as plt
 
 
 def build_poly(x, degree):
-    """polynomial basis functions for input data x, for j=0 up to j=degree."""
+    """Polynomial basis functions for input data x, for j=0 up to j=degree."""
     poly = np.ones((len(x), 1))
     for deg in range(1, degree+1):
         poly = np.c_[poly, np.power(x, deg)]
     return poly
 
+def ridge_regression_demo(std_data,labels,degree,ratio,seed):
+    """ridge regression demo."""
+    # define parameter
+    lambdas = np.logspace(-5, -1, 10)
+    # split data
+    x_tr, x_te, y_tr, y_te = split_data(std_data,labels,ratio, seed)
+    # form tx
+    tx_tr = build_poly(x_tr, degree)
+    tx_te = build_poly(x_te, degree)
+    # ridge regression with different lambda
+    rmse_tr = []
+    rmse_te = []
+    for ind, lambda_ in enumerate(lambdas):
+         # ridge regression
+            weight_tr,loss_tr = ridge_regression(y_tr, tx_tr, lambda_)
+            weight_te,loss_te = ridge_regression(y_te, tx_te, lambda_)
+            rmse_tr.append(np.sqrt(2 * loss_tr))
+            rmse_te.append(np.sqrt(2 * loss_te))
+            
+    plot_train_test(rmse_tr, rmse_te, lambdas, degree)
 
 def split_data(x, y, ratio, myseed=1):
-    """split the dataset based on the split ratio."""
+    """Split the dataset based on the split ratio."""
     # set seed
     np.random.seed(myseed)
     # generate random indices
