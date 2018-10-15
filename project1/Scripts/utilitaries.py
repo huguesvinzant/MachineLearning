@@ -73,14 +73,28 @@ def standardize(tx):
     standardized_tx = centered_tx / std_tx
     standardized_tx[np.isnan(standardized_tx)] = 0
     return standardized_tx
-    
-def PCA(tx, k):
+
+def PCA(tx, t):
     """Apply PCA to a given set of datapoints in D-dimension"""
     cov_matrix = np.cov(tx.T)
     eigenValues, eigenVectors = np.linalg.eig(cov_matrix)
-    
+    #The eigenvectors with the lowest eigenvalues bear the least informations about
+    #the distribution of the data : let's choose the top k eigenvectors
+    #Explained variance calculation, how much information = variance can be attributed 
+    # to each of the principal component
     sort_indices = eigenValues.argsort()[::-1]
     eigenValues = eigenValues[sort_indices]
     eigenVectors = eigenVectors[:,sort_indices]
-    
-    return eigenValues, eigenVectors[:,:k]
+    eigenval = np.asarray(eigenValues)
+    eigenvec = np.asarray(eigenVectors)
+    total = sum(eigenval)
+    explained_variance =[]
+    k = 0
+    sum_explained_var = 0
+    for i in eigenval:
+        explained_variance.append([(i/total)*100])
+        sum_explained_var += (i/total)
+        if sum_explained_var < t:
+            k += 1  
+    print('Kept features',k)
+    return eigenValues, eigenVectors[:,:k], explained_variance
