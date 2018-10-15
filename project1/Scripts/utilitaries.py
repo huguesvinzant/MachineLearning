@@ -39,35 +39,27 @@ def meaningless_to_nan(tx):
 
 def nan_proportion(tx):
     """Calculate and display the proportion [0,1] of NaN per feature (column)."""
-    n_samples = tx.shape[0]
-    n_features = tx.shape[1]
+    n_samples, n_features = np.shape(tx)
     #init. matrix that will contain proportions
-    prop_nan = np.zeros((2,30))
-    
+    prop_nan = np.zeros(30)
+    remove_indices = []
     for feature in range(n_features):
         n_nan = 0
         for sample in range(n_samples):
             if np.isnan(tx[sample,feature]):
                 n_nan += 1
-                prop_nan[0,feature] = feature
-                prop_nan[1,feature] = n_nan/n_samples
-    return prop_nan
+        prop_nan[feature] = n_nan/n_samples
+    return prop_nan, n_features
 
 
 #This function does two things while it should do only one ! 
 def remove_meaningless_data(tx, ratio):
     """Remove features with more than 'ratio' of NaN"""
-    tx[tx == -999] = np.NaN
-    n_samples, n_features = np.shape(tx)
-    prop_nan = np.zeros((2,30))
+    tx = meaningless_to_nan(tx)
+    prop_nan, n_features = nan_proportion(tx)
     remove_indices = []
     for i in range(n_features):
-        n_nan = 0
-        for j in range(n_samples):
-            if np.isnan(tx[j,i]):
-                n_nan += 1
-        prop_nan[1,i] = n_nan/n_samples
-        if n_nan/n_samples > ratio:
+        if prop_nan[i] > ratio:
             remove_indices.append(i)
     print('Removed features :',remove_indices)
     tx = np.delete(tx, remove_indices, axis=1)
