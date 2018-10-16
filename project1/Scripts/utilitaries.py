@@ -138,3 +138,19 @@ def build_poly(x, degree):
     for deg in range(1, degree+1):
         poly = np.c_[poly, np.power(x, deg)]
     return poly
+
+def sigmoid(t):
+    """Apply sigmoid function on t."""
+    return 1.0 / (1 + np.exp(-t))
+
+def calculate_logistic_loss(y, tx, w):
+    """Compute the logistic cost."""
+    pred = sigmoid(tx.dot(w))
+    loss = y.T.dot(np.log(pred)) + (1 - y).T.dot(np.log(1 - pred))
+    return np.squeeze(- loss) # why use squeeze? Takes out the singular entries from the array
+
+def calculate_gradient(y, tx, w):
+    """Compute the gradient of loss."""
+    pred = sigmoid(tx.dot(w))
+    gradient = tx.T.dot(pred - y)
+    return gradient
