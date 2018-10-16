@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Working toolbox with 6 basic functions."""
+import matplotlib.pyplot as plt
 from utilitaries import *
 
 def least_squares(y, tx):
@@ -37,7 +38,6 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):  # does not seem to w
             loss = compute_loss(y, tx, weights)
     return weights, loss
 
-
 def ridge_regression(y, tx, lambda_):
     '''Explicit solution for the weights using ridge regression.'''
     # compute another lambda to simplify notation
@@ -49,6 +49,41 @@ def ridge_regression(y, tx, lambda_):
     # calculate loss
     loss = compute_loss(y, tx, weights)
     return weights, loss
+
+def plot_train_test(train_errors, test_errors, lambdas, degree):
+    """
+    train_errors, test_errors and lambas should be list (of the same size) the respective train error and test error for a given lambda,
+    * lambda[0] = 1
+    * train_errors[0] = RMSE of a ridge regression on the train set
+    * test_errors[0] = RMSE of the parameter found by ridge regression applied on the test set
+    
+    degree is just used for the title of the plot.
+    """
+    plt.semilogx(lambdas, train_errors, color='b', marker='*', label="Train error")
+    plt.semilogx(lambdas, test_errors, color='r', marker='*', label="Test error")
+    plt.xlabel("lambda")
+    plt.ylabel("RMSE")
+    plt.title("Ridge regression for polynomial degree " + str(degree))
+    leg = plt.legend(loc=1, shadow=True)
+    leg.draw_frame(False)
+    plt.savefig("ridge_regression")
+
+def split_data(x, y, ratio, myseed=1):
+    """split the dataset based on the split ratio."""
+    # set seed
+    np.random.seed(myseed)
+    # generate random indices
+    num_row = len(y)
+    indices = np.random.permutation(num_row)
+    index_split = int(np.floor(ratio * num_row))
+    index_tr = indices[: index_split]
+    index_te = indices[index_split:]
+    # create split
+    x_tr = x[index_tr]
+    x_te = x[index_te]
+    y_tr = y[index_tr]
+    y_te = y[index_te]
+    return x_tr, x_te, y_tr, y_te
 
 def ridge_regression_demo(std_data,labels,degree,ratio,seed):
     """Ridge regression demo."""
@@ -65,9 +100,8 @@ def ridge_regression_demo(std_data,labels,degree,ratio,seed):
     for ind, lambda_ in enumerate(lambdas):
          # ridge regression
             weight_tr,loss_tr = ridge_regression(y_tr, tx_tr, lambda_)
-            weight_te,loss_te = ridge_regression(y_te, tx_te, lambda_)
             rmse_tr.append(np.sqrt(2 * loss_tr))
-            rmse_te.append(np.sqrt(2 * loss_te))
+            rmse_te.append(np.sqrt(2 * compute_loss(y_te, tx_te, weight_tr)))
             
     plot_train_test(rmse_tr, rmse_te, lambdas, degree)
 
