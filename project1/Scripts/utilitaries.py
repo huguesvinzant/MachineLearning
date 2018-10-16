@@ -2,6 +2,7 @@
 """Utilitary functions."""
 
 import numpy as np
+from implementations import *
 
 
 def calculate_mse(e):
@@ -96,3 +97,44 @@ def PCA(tx, t):
             k_feature += 1  
     print('Kept features:', k_feature)
     return eigen_values, eigen_vectors[:,:k_feature], explained_variance
+
+def build_k_indices(y, k_fold, seed):
+    """build k indices for k-fold."""
+    num_row = y.shape[0]
+    interval = int(num_row / k_fold)
+    np.random.seed(seed)
+    indices = np.random.permutation(num_row)
+    k_indices = [indices[k * interval: (k + 1) * interval]
+                 for k in range(k_fold)]
+    return np.array(k_indices)
+
+def cross_validation(y, x, k_indices, k_fold, lambda_, degree):
+    """Return the loss of ridge regression."""
+    loss_tr = []
+    loss_te = []
+    for k in range(k_fold):
+        # get k'th subgroup in test, others in train
+        y_te = y[k_indices[k]]
+        x_te = x[k_indices[k]]
+        list_tr = []
+        for l in range(k_fold):
+            if l != k:
+                list_tr.append(k_indices[l])
+        y_tr = y[np.concatenate(list_tr)]
+        x_tr = x[np.concatenate(list_tr)]
+        # form data with polynomial degree
+        poly_tr = build_poly(x_tr, degree)
+        poly_te = build_poly(x_te, degree)
+        # ridge regression
+        w, _ = ridge_regression(y_tr, poly_tr, lambda_)
+        # calculate the loss for train and test data
+        loss_tr.append(compute_loss(y_tr, poly_tr, w))
+        loss_te.append(compute_loss(y_te, poly_te, w))
+    return np.mean(loss_tr), np.mean(loss_te)
+
+def build_poly(x, degree):
+    """Polynomial basis functions for input data x, for j=0 up to j=degree."""
+    poly = np.ones((len(x), 1))
+    for deg in range(1, degree+1):
+        poly = np.c_[poly, np.power(x, deg)]
+    return poly

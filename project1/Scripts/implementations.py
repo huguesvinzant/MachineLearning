@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Working toolbox with 6 basic functions."""
 from utilitaries import *
-from additional_functions import *
 
 def least_squares(y, tx):
     """Calculate the least squares solution using normal equations."""
