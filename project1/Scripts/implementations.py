@@ -105,25 +105,37 @@ def ridge_regression_demo(std_data,labels,degree,ratio,seed):
             
     plot_train_test(rmse_tr, rmse_te, lambdas, degree)
 
-def logistic_regression(y, tx, initial_w, gamma):
+def logistic_regression(y, tx, initial_w,max_iters, gamma):
     """
     Do one step of gradient descent using logistic regression.
     Return the loss and the updated w.
     """
-    loss = calculate_logistic_loss(y, tx, w)
-    grad = calculate_gradient(y, tx, w)
-    w -= gamma * grad
-    return loss, w
+    w = initial_w
+    losses = []
+    for step in range(max_iters):
+        loss = calculate_logistic_loss(y, tx, w)
+        grad = calculate_gradient(y, tx, w)
+        w -= gamma * grad
+        if step % 100 == 0:
+            print("Current iteration={i}, loss={l}".format(i=step, l=loss))
+        losses.append(loss)
+    return losses, w
 
 def reg_logistic_regression(y, tx, lambda_, initial_w,max_iters, gamma):
     """
     Do one step of gradient descent using reg_logistic regression.
     Return the loss and the updated w.
     """
-    loss = calculate_logistic_loss(y, tx, w)
-    grad = calculate_gradient(y, tx, w)
-    w -= gamma * grad - gamma * lambda_*w
-    return loss, w
+    w = initial_w
+    losses = []
+    for step in range(max_iters):
+        loss = calculate_logistic_loss(y, tx, w)
+        grad = calculate_gradient(y, tx, w)
+        w -= gamma * grad - gamma * lambda_*w
+        if step % 100 == 0:
+            print('Current iteration={i}:', step, 'loss={l}:', loss)
+        losses.append(loss)
+    return losses, w
 
 def logistic_regression_gradient_descent_demo(y, x):
     # init parameters
@@ -132,7 +144,7 @@ def logistic_regression_gradient_descent_demo(y, x):
     gamma = 0.01
     losses = []
     # build tx
-    tx = np.c_[np.ones((y.shape[0], 1)),x]
+    #tx = np.c_[np.ones((y.shape[0], 1)),x]
     w = np.zeros((tx.shape[1], 1))
 
     # start the logistic regression

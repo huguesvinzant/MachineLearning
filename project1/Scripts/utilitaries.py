@@ -112,6 +112,9 @@ def cross_validation(y, x, k_indices, k_fold, lambda_, degree):
     """Return the loss of ridge regression."""
     loss_tr = []
     loss_te = []
+    initial_w = np.zeros((1,len(x[0])))
+    max_iters = 10
+    gamma = 0.01
     for k in range(k_fold):
         # get k'th subgroup in test, others in train
         y_te = y[k_indices[k]]
@@ -126,10 +129,11 @@ def cross_validation(y, x, k_indices, k_fold, lambda_, degree):
         poly_tr = build_poly(x_tr, degree)
         poly_te = build_poly(x_te, degree)
         # ridge regression
-        w, _ = ridge_regression(y_tr, poly_tr, lambda_)
+        #w, _ = ridge_regression(y_tr, poly_tr, lambda_)
+        w, _   = reg_logistic_regression(y_tr,poly_tr, lambda_, initial_w ,max_iters,gamma)
         # calculate the loss for train and test data
-        loss_tr.append(compute_loss(y_tr, poly_tr, w))
-        loss_te.append(compute_loss(y_te, poly_te, w))
+        loss_tr.append(calculate_logistic_loss(y_tr, poly_tr, initial_w))
+        loss_te.append(calculate_logistic_loss(y_te, poly_te, initial_w))
     return np.mean(loss_tr), np.mean(loss_te)
 
 def build_poly(x, degree):
@@ -145,12 +149,15 @@ def sigmoid(t):
 
 def calculate_logistic_loss(y, tx, w):
     """Compute the logistic cost."""
-    pred = sigmoid(tx.dot(w))
-    loss = y.T.dot(np.log(pred)) + (1 - y).T.dot(np.log(1 - pred))
-    return np.squeeze(- loss) # why use squeeze? Takes out the singular entries from the array
+    prediction = sigmoid(tx.dot(w))
+    e = y - prediction
+    loss = np.mean(np.abs(e))
+    #loss = y.T.dot(np.log(prediction)) + (1 - y).T.dot(np.log(1 - prediction))
+    return loss # why use squeeze? Takes out the singular entries from the array
 
 def calculate_gradient(y, tx, w):
     """Compute the gradient of loss."""
-    pred = sigmoid(tx.dot(w))
-    gradient = tx.T.dot(pred - y)
+    prediction = sigmoid(tx.dot(w))
+    output_error = prediction - y
+    gradient = tx.T.dot(output_error)
     return gradient
