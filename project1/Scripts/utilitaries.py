@@ -68,9 +68,9 @@ def standardize(tx):
     """Standardize the data along the feature_wise ignoring NaN entries."""
     mean_tx = np.nanmean(tx, axis = 0)
     centered_tx = tx - mean_tx
-    std_tx = np.nanstd(centered_tx)
+    centered_tx[np.isnan(centered_tx)] = 0
+    std_tx = np.nanstd(centered_tx,axis = 0)
     standardized_tx = centered_tx / std_tx
-    standardized_tx[np.isnan(standardized_tx)] = 0
     return standardized_tx
 
 def PCA(tx, t):
