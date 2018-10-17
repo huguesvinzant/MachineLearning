@@ -147,20 +147,35 @@ def build_poly(x, degree):
     return poly
 
 def sigmoid(t):
-    """Apply sigmoid function on t."""
+    """apply sigmoid function on t."""
     return 1.0 / (1 + np.exp(-t))
 
-def calculate_logistic_loss(y, tx, w):
-    """Compute the logistic cost."""
-    prediction = sigmoid(tx.dot(w))
-    e = y - prediction
-    loss = np.mean(np.abs(e))
-    #loss = y.T.dot(np.log(prediction)) + (1 - y).T.dot(np.log(1 - prediction))
-    return loss # why use squeeze? Takes out the singular entries from the array
+def calculate_loss(y, tx, w):
+    """compute the cost by negative log likelihood."""
+    pred = sigmoid(tx.dot(w))
+    error = y - pred
+    loss = (((y - pred)**2).mean(axis = 0)) / 2
+    return loss
 
 def calculate_gradient(y, tx, w):
-    """Compute the gradient of loss."""
-    prediction = sigmoid(tx.dot(w))
-    output_error = prediction - y
-    gradient = tx.T.dot(output_error)
-    return gradient
+    """compute the gradient of loss."""
+    pred = sigmoid(tx.dot(w))
+    grad = np.transpose(tx) @ (pred - y)
+    return grad
+
+def learning_by_gradient_descent(y, tx, w, gamma):
+    """
+    Do one step of gradient descen using logistic regression.
+    Return the loss and the updated w.
+    """
+    loss = calculate_loss(y, tx, w)
+    grad = calculate_gradient(y, tx, w)
+    return loss, (w - gamma * grad)
+def learning_by_gradient_descent_reg(y, tx, w, gamma,lambda_):
+    """
+    Do one step of gradient descen using logistic regression.
+    Return the loss and the updated w.
+    """
+    loss = calculate_loss(y, tx, w)
+    grad = calculate_gradient(y, tx, w)
+    return loss, (w - gamma * grad - gamma * lambda_*w)
