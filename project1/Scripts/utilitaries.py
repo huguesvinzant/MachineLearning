@@ -108,12 +108,12 @@ def build_k_indices(y, k_fold, seed):
                  for k in range(k_fold)]
     return np.array(k_indices)
 
-def cross_validation(y, x, k_indices, k_fold, lambda_, degree):
+def cross_validation(y, x, k_indices, k_fold, lambda_, degree=1):
     """Return the loss of ridge regression."""
     loss_tr = []
     loss_te = []
-    initial_w = np.zeros((1,len(x[0])))
-    max_iters = 10
+    initial_w = np.zeros((len(x[0]),1))
+    max_iters = 1
     gamma = 0.01
     for k in range(k_fold):
         # get k'th subgroup in test, others in train
@@ -121,13 +121,16 @@ def cross_validation(y, x, k_indices, k_fold, lambda_, degree):
         x_te = x[k_indices[k]]
         list_tr = []
         for l in range(k_fold):
+            print(k,l)
             if l != k:
                 list_tr.append(k_indices[l])
         y_tr = y[np.concatenate(list_tr)]
         x_tr = x[np.concatenate(list_tr)]
         # form data with polynomial degree
-        poly_tr = build_poly(x_tr, degree)
-        poly_te = build_poly(x_te, degree)
+        #poly_tr = build_poly(x_tr, degree)
+        poly_tr = x_tr
+        #poly_te = build_poly(x_te, degree)
+        poly_te = x_te
         # ridge regression
         #w, _ = ridge_regression(y_tr, poly_tr, lambda_)
         w, _   = reg_logistic_regression(y_tr,poly_tr, lambda_, initial_w ,max_iters,gamma)

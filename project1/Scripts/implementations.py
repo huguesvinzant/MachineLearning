@@ -112,6 +112,7 @@ def logistic_regression(y, tx, initial_w,max_iters, gamma):
     """
     w = initial_w
     losses = []
+    weights =[]
     for step in range(max_iters):
         loss = calculate_logistic_loss(y, tx, w)
         grad = calculate_gradient(y, tx, w)
@@ -119,7 +120,8 @@ def logistic_regression(y, tx, initial_w,max_iters, gamma):
         if step % 100 == 0:
             print("Current iteration={i}, loss={l}".format(i=step, l=loss))
         losses.append(loss)
-    return losses, w
+        weights.append(w)
+    return losses, weights
 
 def reg_logistic_regression(y, tx, lambda_, initial_w,max_iters, gamma):
     """
@@ -128,14 +130,19 @@ def reg_logistic_regression(y, tx, lambda_, initial_w,max_iters, gamma):
     """
     w = initial_w
     losses = []
+    weights =[]
     for step in range(max_iters):
-        loss = calculate_logistic_loss(y, tx, w)
-        grad = calculate_gradient(y, tx, w)
+        for i in range(tx.shape[0]):
+            grad = calculate_gradient(y, tx, w)
+        print(grad.shape)
         w -= gamma * grad - gamma * lambda_*w
+        weights.append(w)
         if step % 100 == 0:
             print('Current iteration={i}:', step, 'loss={l}:', loss)
+        loss = calculate_logistic_loss(y, tx, w)
         losses.append(loss)
-    return losses, w
+        
+    return losses, weights
 
 def logistic_regression_gradient_descent_demo(y, x):
     # init parameters
