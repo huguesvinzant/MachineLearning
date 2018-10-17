@@ -69,7 +69,7 @@ def plot_train_test(train_errors, test_errors, lambdas, degree):
     plt.savefig("ridge_regression")
 
 def split_data(x, y, ratio, myseed=1):
-    """split the dataset based on the split ratio."""
+    """Split the dataset based on the split ratio."""
     # set seed
     np.random.seed(myseed)
     # generate random indices
@@ -86,7 +86,7 @@ def split_data(x, y, ratio, myseed=1):
     return x_tr, x_te, y_tr, y_te
 
 def ridge_regression_demo(std_data,labels,degree,ratio,seed):
-    """Ridge regression demo."""
+    """Ridge regression built-in demo for trials."""
     # define parameter
     lambdas = np.logspace(-5, -1, 10)
     # split data
@@ -107,13 +107,13 @@ def ridge_regression_demo(std_data,labels,degree,ratio,seed):
 
 def logistic_regression(y, x, initial_w,max_iters, gamma):
     """
-    Do one step of gradient descent using logistic regression.
-    Return the loss and the updated w.
+    Does one step of gradient descent using logistic regression. 
+    Return the loss and the updated weight w.
     """
     threshold = 1e-8
     losses = []
 
-    # build tx
+    # build tx including w_0 weight
     tx = np.c_[np.ones((y.shape[0], 1)), x]
     w = np.zeros((tx.shape[1], 1))
     initial_w = w
@@ -164,6 +164,7 @@ def reg_logistic_regression(y, x, lambda_, initial_w,max_iters, gamma):
     return losses, w
 
 def logistic_regression_gradient_descent_demo(y, x): # this should work
+    """Logistic regression built-in demo for trials."""
     # init parameters
     max_iter = 10000
     threshold = 1e-8
