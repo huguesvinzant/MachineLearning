@@ -191,3 +191,77 @@ def logistic_regression_gradient_descent_demo(y, x): # this should work
             break
     return losses, w
 
+def cross_validation(y, x, k_indices, k_fold, lambda_, degree=1):
+    """Return the loss of ridge regression."""
+    loss_tr = []
+    loss_te = []
+    initial_w = np.zeros((len(x[0]),1))
+    max_iters = 1
+    gamma = 0.01
+    for k in range(k_fold):
+        # get k'th subgroup in test, others in train
+        y_te = y[k_indices[k]]
+        x_te = x[k_indices[k]]
+        list_tr = []
+        for l in range(k_fold):
+            if l != k:
+                list_tr.append(k_indices[l])
+        y_tr = y[np.concatenate(list_tr)]
+        x_tr = x[np.concatenate(list_tr)]
+        # form data with polynomial degree
+        #poly_tr = build_poly(x_tr, degree)
+        poly_tr = x_tr
+        #poly_te = build_poly(x_te, degree)
+        poly_te = x_te
+        # ridge regression
+        w, _ = ridge_regression(y_tr, poly_tr, lambda_)
+        #y_pred = np.dot(poly_te, w)
+        #score = accuracy(y_pred,y_te)
+        #w, _   = reg_logistic_regression(y_tr,poly_tr, lambda_, initial_w ,max_iters,gamma)
+        # calculate the loss for train and test data
+        loss_tr.append(compute_loss(y_tr, poly_tr, w))
+        loss_te.append(compute_loss(y_te, poly_te, w))
+        
+    return np.mean(loss_tr),np.mean(loss_te)
+
+def accuracy (y_pred,y):
+    prop = 0
+    for i in range(len(y)):
+        if y_pred[i] == y[i]:
+            prop += 1
+    return prop/len(y)
+
+def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
+    """Return the loss of ridge regression."""
+    loss_tr = []
+    loss_te = []
+    initial_w = np.zeros((len(x[0]),1))
+    max_iters = 1
+    gamma = 0.01
+    for k in range(k_fold):
+        # get k'th subgroup in test, others in train
+        y_te = y[k_indices[k]]
+        x_te = x[k_indices[k]]
+        list_tr = []
+        for l in range(k_fold):
+            if l != k:
+                list_tr.append(k_indices[l])
+        y_tr = y[np.concatenate(list_tr)]
+        x_tr = x[np.concatenate(list_tr)]
+        #form data with polynomial degree
+        poly_tr = build_poly(x_tr, degree)
+       
+        poly_te = build_poly(x_te, degree)
+      
+        # ridge regression
+        w, _ = ridge_regression(y_tr, poly_tr, lambda_)
+        y_pred = np.dot(poly_te, w)
+        score = accuracy(y_pred,y_te)
+        #w, _   = reg_logistic_regression(y_tr,poly_tr, lambda_, initial_w ,max_iters,gamma)
+        # calculate the loss for train and test data
+        loss_tr.append(compute_loss(y_tr, poly_tr, w))
+        loss_te.append(compute_loss(y_te, poly_te, w))
+        
+    return np.mean(loss_tr),np.mean(loss_te),score
+        
+    
