@@ -118,25 +118,25 @@ def build_poly(x, degree):
     return poly
 
 def sigmoid(t):
-    """apply sigmoid function on t."""
+    """Apply sigmoid function on t."""
     return 1.0 / (1 + np.exp(-t))
 
 def calculate_loss(y, tx, w):
-    """compute the cost by negative log likelihood."""
+    """Compute the cost by negative log-likelihood."""
     pred = sigmoid(tx.dot(w))
     error = y - pred
     loss = (((y - pred)**2).mean(axis = 0)) / 2
     return loss
 
 def calculate_gradient(y, tx, w):
-    """compute the gradient of loss."""
+    """Compute the gradient of loss for sigmoidal prediction."""
     pred = sigmoid(tx.dot(w))
     grad = np.transpose(tx) @ (pred - y)
     return grad
 
 def learning_by_gradient_descent(y, tx, w, gamma):
     """
-    Do one step of gradient descen using logistic regression.
+    Do one step of gradient descent using logistic regression.
     Return the loss and the updated w.
     """
     loss = calculate_loss(y, tx, w)
@@ -144,7 +144,7 @@ def learning_by_gradient_descent(y, tx, w, gamma):
     return loss, (w - gamma * grad)
 def learning_by_gradient_descent_reg(y, tx, w, gamma,lambda_):
     """
-    Do one step of gradient descen using logistic regression.
+    Do one step of gradient descent using regularized logistic regression.
     Return the loss and the updated w.
     """
     loss = calculate_loss(y, tx, w)
