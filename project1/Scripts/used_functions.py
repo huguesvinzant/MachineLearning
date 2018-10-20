@@ -383,15 +383,17 @@ def accuracy (y_pred,y):
 def class_accuracy(y_pred, labels):
     count_signal = len(np.extract(labels[:] == 1, labels))
     count_bg = len(np.extract(labels[:] == -1, labels))
-    selection_signal = np.extract( np.logical_and(y_pred[:] != 1, labels[:] == 1), y_pred)
-    selection_bg = np.extract( np.logical_and(y_pred[:] != -1, labels[:] == -1), y_pred)
+    print(count_bg)
+    selection_signal = np.extract(np.logical_and(y_pred[:] != labels[:], labels[:] == 1), y_pred)
+    selection_bg = np.extract(np.logical_and(y_pred[:] != labels[:], labels[:] == -1), y_pred)
+    
     class_error = (1/3) * (len(selection_signal) / count_signal)
     class_error += (2/3) * (len(selection_bg) / count_bg) 
     class_score = 1 - class_error
     return class_score
                                                                                                          
 def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
-    """Return the loss of ridge regression."""
+    """Cross-validation with the loss of ridge regression."""
     loss_tr = []
     loss_te = []
     initial_w = np.zeros((len(x[0]),1))
@@ -416,7 +418,10 @@ def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
         y_pred = predict_labels(w, poly_te)
         score = accuracy(y_pred, y_te)
         class_score = class_accuracy(y_pred, y_te)
+        #log regresion
         #w, _   = reg_logistic_regression(y_tr,poly_tr, lambda_, initial_w ,max_iters,gamma)
+        
+        
         # calculate the loss for train and test data
         loss_tr.append(compute_loss(y_tr, poly_tr, w))
         loss_te.append(compute_loss(y_te, poly_te, w))
@@ -424,14 +429,15 @@ def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
     return np.mean(loss_tr),np.mean(loss_te), score, class_score
         
 def predict_labels(weights, data):
-    """Generates class predictions given weights, and a test data matrix"""
+    """Generates class predictions given weights, and a test data matrix."""
     y_pred = np.dot(data, weights)
     y_pred[np.where(y_pred <= 0)] = -1
     y_pred[np.where(y_pred > 0)] = 1
     
     return y_pred
 
-def nan_find_columns(n_features,n_samples,nan_data):
+def nan_find_columns(n_features, n_samples, nan_data):
+    """Find columns contaning some NaN."""
     features = []
     for feature in range(n_features):
         for sample in range(n_samples):
