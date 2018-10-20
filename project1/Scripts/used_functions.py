@@ -66,7 +66,7 @@ def standardize(tx):
     """Standardize the data along the feature_wise ignoring NaN entries."""
     mean_tx = np.nanmean(tx, axis = 0)
     centered_tx = tx - mean_tx
-    #centered_tx[np.isnan(centered_tx)] = 0
+    centered_tx[np.isnan(centered_tx)] = 0
     std_tx = np.nanstd(centered_tx,axis = 0)
     standardized_tx = centered_tx / std_tx
     return standardized_tx
@@ -113,12 +113,6 @@ def build_poly(x, degree):
     for deg in range(1, degree+1):
         poly = np.c_[poly, np.power(x, deg)]
     return poly
-def build_sinusoid(x,f,N,n):
-    phi = 0
-    sinusoid = np.ones((len(x),1))
-    for n_ in range(n):
-        sinusoid = np.c_[sinusoid, np.exp(1j*(2*np.pi*f*n_/N + phi))]
-    return sinusoid
 
 def sigmoid(t):
     """Apply sigmoid function on t."""
