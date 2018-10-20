@@ -4,6 +4,13 @@
 import numpy as np
 from implementations import *
 
+def class_proportion(labels):
+    """Find class proportions from train set."""
+    total = len(labels)
+    count_signal = len(np.extract(labels[:] == 1, labels))
+    count_bg = len(np.extract(labels[:] == -1, labels))
+    return count_signal / total, count_bg / total
+ 
 
 def calculate_mse(e):
     """Calculate the mse for vector e."""

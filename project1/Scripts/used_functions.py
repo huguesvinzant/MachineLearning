@@ -2,7 +2,6 @@
 
 import numpy as np
 
-
 def calculate_mse(e):
     """Calculate the mse for vector e."""
     return 1/2*np.mean(e**2)
@@ -381,6 +380,16 @@ def accuracy (y_pred,y):
             prop += 1
     return prop/len(y)
 
+def class_accuracy(y_pred, labels):
+    count_signal = len(np.extract(labels[:] == 1, labels))
+    count_bg = len(np.extract(labels[:] == -1, labels))
+    selection_signal = np.extract( np.logical_and(y_pred[:] != 1, labels[:] == 1), y_pred)
+    selection_bg = np.extract( np.logical_and(y_pred[:] != -1, labels[:] == -1), y_pred)
+    class_error = (1/3) * (len(selection_signal) / count_signal)
+    class_error += (2/3) * (len(selection_bg) / count_bg) 
+    class_score = 1 - class_error
+    return class_score
+                                                                                                         
 def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
     """Return the loss of ridge regression."""
     loss_tr = []
@@ -400,19 +409,19 @@ def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
         x_tr = x[np.concatenate(list_tr)]
         #form data with polynomial degree
         poly_tr = build_poly(x_tr, degree)
-       
         poly_te = build_poly(x_te, degree)
       
         # ridge regression
         w, _ = ridge_regression(y_tr, poly_tr, lambda_)
         y_pred = predict_labels(w, poly_te)
-        score = accuracy(y_pred,y_te)
+        score = accuracy(y_pred, y_te)
+        class_score = class_accuracy(y_pred, y_te)
         #w, _   = reg_logistic_regression(y_tr,poly_tr, lambda_, initial_w ,max_iters,gamma)
         # calculate the loss for train and test data
         loss_tr.append(compute_loss(y_tr, poly_tr, w))
         loss_te.append(compute_loss(y_te, poly_te, w))
         
-    return np.mean(loss_tr),np.mean(loss_te),score
+    return np.mean(loss_tr),np.mean(loss_te), score, class_score
         
 def predict_labels(weights, data):
     """Generates class predictions given weights, and a test data matrix"""
@@ -421,6 +430,7 @@ def predict_labels(weights, data):
     y_pred[np.where(y_pred > 0)] = 1
     
     return y_pred
+
 def nan_find_columns(n_features,n_samples,nan_data):
     features = []
     for feature in range(n_features):

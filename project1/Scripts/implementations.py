@@ -223,9 +223,10 @@ def cross_validation(y, x, k_indices, k_fold, lambda_, degree=1):
         loss_tr.append(compute_loss(y_tr, poly_tr, w))
         loss_te.append(compute_loss(y_te, poly_te, w))
         
-    return np.mean(loss_tr),np.mean(loss_te)
+    return np.mean(loss_tr), np.mean(loss_te)
 
-def accuracy (y_pred,y):
+def accuracy (y_pred, y):
+    """Calculate the accuracy  of the prediction compared with labels."""
     prop = 0
     for i in range(len(y)):
         if y_pred[i] == y[i]:
@@ -257,16 +258,16 @@ def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
         # ridge regression
         w, _ = ridge_regression(y_tr, poly_tr, lambda_)
         y_pred = predict_labels(w, poly_te)
-        score = accuracy(y_pred,y_te)
-        #w, _   = reg_logistic_regression(y_tr,poly_tr, lambda_, initial_w ,max_iters,gamma)
+        score = accuracy(y_pred, y_te)
+        #w, _   = reg_logistic_rvegression(y_tr,poly_tr, lambda_, initial_w ,max_iters,gamma)
         # calculate the loss for train and test data
         loss_tr.append(compute_loss(y_tr, poly_tr, w))
         loss_te.append(compute_loss(y_te, poly_te, w))
         
-    return np.mean(loss_tr),np.mean(loss_te),score
+    return np.mean(loss_tr),np.mean(loss_te), score
         
 def predict_labels(weights, data):
-    """Generates class predictions given weights, and a test data matrix"""
+    """Generate class predictions given weights, and a test data matrix."""
     y_pred = np.dot(data, weights)
     y_pred[np.where(y_pred <= 0)] = -1
     y_pred[np.where(y_pred > 0)] = 1
