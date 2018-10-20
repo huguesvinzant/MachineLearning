@@ -256,7 +256,7 @@ def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
       
         # ridge regression
         w, _ = ridge_regression(y_tr, poly_tr, lambda_)
-        y_pred = np.dot(poly_te, w)
+        y_pred = predict_labels(w, poly_te)
         score = accuracy(y_pred,y_te)
         #w, _   = reg_logistic_regression(y_tr,poly_tr, lambda_, initial_w ,max_iters,gamma)
         # calculate the loss for train and test data
@@ -265,4 +265,10 @@ def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
         
     return np.mean(loss_tr),np.mean(loss_te),score
         
+def predict_labels(weights, data):
+    """Generates class predictions given weights, and a test data matrix"""
+    y_pred = np.dot(data, weights)
+    y_pred[np.where(y_pred <= 0)] = -1
+    y_pred[np.where(y_pred > 0)] = 1
     
+    return y_pred
