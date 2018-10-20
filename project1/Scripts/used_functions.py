@@ -374,6 +374,7 @@ def cross_validation(y, x, k_indices, k_fold, lambda_, degree=1):
     return np.mean(loss_tr),np.mean(loss_te)
 
 def accuracy (y_pred,y):
+    """Compute accuracy."""
     prop = 0
     for i in range(len(y)):
         if y_pred[i] == y[i]:
@@ -381,9 +382,9 @@ def accuracy (y_pred,y):
     return prop/len(y)
 
 def class_accuracy(y_pred, labels):
+    """Compute class-proportion weighted accuracy."""
     count_signal = len(np.extract(labels[:] == 1, labels))
     count_bg = len(np.extract(labels[:] == -1, labels))
-    print(count_bg)
     selection_signal = np.extract(np.logical_and(y_pred[:] != labels[:], labels[:] == 1), y_pred)
     selection_bg = np.extract(np.logical_and(y_pred[:] != labels[:], labels[:] == -1), y_pred)
     
