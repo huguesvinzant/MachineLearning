@@ -95,7 +95,9 @@ def ridge_regression(y, tx, lambda_):
 
 def compute_loss(y, tx, w):
     """Calculate the mse loss."""
-    e = y - tx.dot(w)
+    y_pred = predict_labels(w, tx)
+    y_pred[y_pred == -1] = 0
+    e = y - y_pred
     return calculate_mse(e)
 
 def calculate_mse(e):
