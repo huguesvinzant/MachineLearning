@@ -447,3 +447,94 @@ def nan_find_columns(n_features, n_samples, nan_data):
     nan_columns = np.unique(features)
     print(nan_columns)   
     return nan_columns
+
+
+def sigmoid(t):
+    """Apply sigmoid function on t."""
+    return 1.0 / (1 + np.exp(-t))
+
+def calculate_loss(y, tx, w):
+    """Compute the cost by negative log-likelihood."""
+    pred = sigmoid(tx.dot(w))
+    error = y - pred
+    loss = (((y - pred)**2).mean(axis = 0)) / 2
+    return loss
+
+def calculate_gradient(y, tx, w):
+    """Compute the gradient of loss for sigmoidal prediction."""
+    pred = sigmoid(tx.dot(w))
+    grad = np.transpose(tx) @ (pred - y)
+    return grad
+
+def learning_by_gradient_descent(y, tx, w, gamma):
+    """
+    Do one step of gradient descent using logistic regression.
+    Return the loss and the updated w.
+    """
+    loss = calculate_loss(y, tx, w)
+    grad = calculate_gradient(y, tx, w)
+    return loss, (w - gamma * grad)
+
+def logistic_regression(y, x, initial_w,max_iters, gamma):
+    """
+    Does one step of gradient descent using logistic regression. 
+    Return the loss and the updated weight w.
+    """
+    threshold = 1e-8
+    losses = []
+    # build tx including w_0 weight
+    tx = np.c_[np.ones((y.shape[0], 1)), x]
+    w = np.zeros((tx.shape[1], 1))
+    initial_w = w
+    # start the logistic regression
+    for i in range(max_iters):
+        # get loss and update w.
+        loss, w = learning_by_gradient_descent(y, tx, w, gamma)
+        # log info
+        if i % 10 == 0:
+            print("Current iteration={i}, loss={l}".format(i=i, l=loss))
+        # converge criterion
+        losses.append(loss)
+        if i == 0:
+            diff = losses[0]
+        else:
+            diff = np.abs(losses[-1] - losses[-2])
+        if len(losses) > 1 and diff < threshold:
+            break
+    return losses, w
+def learning_by_gradient_descent_reg(y, tx, w, gamma,lambda_):
+    """
+    Do one step of gradient descent using regularized logistic regression.
+    Return the loss and the updated w.
+    """
+    loss = calculate_loss(y, tx, w)
+    grad = calculate_gradient(y, tx, w)
+    return loss, (w - gamma * grad - gamma * lambda_*w)
+def reg_logistic_regression(y, x, lambda_, initial_w,max_iters, gamma):
+    """
+    Do one step of gradient descent using reg_logistic regression.
+    Return the loss and the updated w.
+    """
+    threshold = 1e-8
+    losses = []
+
+    # build tx
+    tx = np.c_[np.ones((y.shape[0], 1)), x]
+    w = np.zeros((tx.shape[1], 1))
+    initial_w = w
+    # start the logistic regression
+    for i in range(max_iters):
+        # get loss and update w.
+        loss, w = learning_by_gradient_descent_reg(y, tx, w, gamma,lambda_)
+        # log info
+        if i % 10 == 0:
+            print("Current iteration={i}, loss={l}".format(i=i, l=loss))
+        # converge criterion
+        losses.append(loss)
+        if i == 0:
+            diff = losses[0]
+        else:
+            diff = np.abs(losses[-1] - losses[-2])
+        if len(losses) > 1 and diff < threshold:
+            break
+    return losses, w

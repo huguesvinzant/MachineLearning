@@ -53,7 +53,7 @@ def cross_validation(y, x, k_indices, k_fold, lambda_):
         
     return np.mean(loss_tr),np.mean(loss_te)
 
-def column_estimation(nan_data):
+def column_estimation_train(nan_data):
     
     n_samples, n_features = np.shape(nan_data)
     nan_columns = nan_find_columns(nan_data)
@@ -68,8 +68,22 @@ def column_estimation(nan_data):
         submatrix0 = np.delete(submatrix, nan_lines, axis = 0)
         labels0 = np.delete(nan_data[:,chosen_feature], nan_lines, axis = 0)
         
-        weights_c, _ = least_squares(labels0, submatrix0)
-        x_pred = np.dot(submatrix[nan_lines,:], weights_c)
+        weights_train, _ = least_squares(labels0, submatrix0)
+        x_pred = np.dot(submatrix[nan_lines,:], weights_train)
+        nan_data[nan_lines, chosen_feature] = x_pred
+        
+    return nan_data,nan_columns,weights_train
+
+def column_estimation_test(nan_data,nan_columns,weights_train):
+    n_samples, n_features = np.shape(nan_data)
+    submatrix = np.delete(nan_data, nan_columns, axis = 1)
+    for chosen_feature in nan_columns:
+        samples = []
+        for sample in range(n_samples):
+            if np.isnan(nan_data[sample,chosen_feature]):
+                samples.append(sample)
+        nan_lines = np.unique(samples)
+        x_pred = np.dot(submatrix[nan_lines,:], weights_train)
         nan_data[nan_lines, chosen_feature] = x_pred
         
     return nan_data
@@ -100,8 +114,8 @@ def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
     loss_tr = []
     loss_te = []
     initial_w = np.zeros((len(x[0]),1))
-    max_iters = 1
-    gamma = 0.01
+    max_iters = 10
+    #gamma = 0.01
     for k in range(k_fold):
         # get k'th subgroup in test, others in train
         y_te = y[k_indices[k]]
@@ -120,6 +134,11 @@ def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
         w, loss_tr = ridge_regression(y_tr, poly_tr, lambda_)
         y_pred = predict_labels(w, poly_te)
         score = accuracy(y_pred, y_te)
+        
+        # logistic regression
+        #w,loss_tr = logistic_regression(y_tr,poly_tr, initial_w,max_iters,lambda_)
+        #y_pred = predict_labels(w,poly_te)
+        #score = accuracy (y_pred,y_te)
         
         # calculate the loss for test data
         loss_te.append(compute_loss(y_te, poly_te, w))
@@ -167,3 +186,122 @@ def least_squares(y, tx):
     weights = inverse@np.transpose(tx)@y
     loss = compute_loss(y, tx, weights)
     return weights, loss
+## LOGISTIC REGRESSION
+
+def sigmoid(t):
+    """Apply sigmoid function on t."""
+    return 1.0 / (1 + np.exp(-t))
+
+def calculate_loss(y, tx, w):
+    """Compute the cost by negative log-likelihood."""
+    y[y == -1] = 0
+    pred = sigmoid(tx.dot(w))
+    error = y - pred
+    #loss = (((y - pred)**2).mean(axis = 0)) / 2
+    loss = y.T.dot(np.log(pred)) + (1 - y).T.dot(np.log(1 - pred))
+    return np.squeeze(- loss)
+
+def calculate_gradient(y, tx, w):
+    """Compute the gradient of loss for sigmoidal prediction."""
+    pred = sigmoid(tx.dot(w))
+    grad = np.transpose(tx) @ (pred - y)
+    return grad
+
+def learning_by_gradient_descent(y, tx, w, gamma):
+    """
+    Do one step of gradient descent using logistic regression.
+    Return the loss and the updated w.
+    """
+    loss = calculate_loss(y, tx, w)
+    grad = calculate_gradient(y, tx, w)
+    return loss, (w - gamma * grad)
+
+
+def logistic_regression(y, x, initial_w,max_iters, gamma):
+    """
+    Does one step of gradient descent using logistic regression. 
+    Return the loss and the updated weight w.
+    """
+    threshold = 1
+    losses = []
+    # build tx including w_0 weight
+    x = np.c_[np.ones((y.shape[0], 1)), x]
+    w = np.zeros((x.shape[1], 1))
+    initial_w = w
+    # start the logistic regression
+    for i in range(max_iters):
+        # get loss and update w.
+        loss, w = learning_by_gradient_descent(y, x, w, gamma)
+        # log info
+        if i % 10 == 0:
+            print("Current iteration={i}, loss={l}".format(i=i, l=loss))
+        # converge criterion
+        losses.append(loss)
+        if i == 0:
+            diff = losses[0]
+        else:
+            diff = np.abs(losses[-1] - losses[-2])
+        if len(losses) > 1 and diff < threshold:
+            break
+    return losses, w
+
+def learning_by_gradient_descent_reg(y, tx, w, gamma,lambda_):
+    """
+    Do one step of gradient descent using regularized logistic regression.
+    Return the loss and the updated w.
+    """
+    loss = calculate_loss(y, tx, w)
+    grad = calculate_gradient(y, tx, w)
+    return loss, (w - gamma * grad - gamma * lambda_*w)
+
+def reg_logistic_regression(y, x, lambda_, initial_w,max_iters, gamma):
+    """
+    Do one step of gradient descent using reg_logistic regression.
+    Return the loss and the updated w.
+    """
+    threshold = 1e-8
+    losses = []
+    # build tx
+    x = np.c_[np.ones((y.shape[0], 1)), x]
+    w = np.zeros((x.shape[1], 1))
+    initial_w = w
+    # start the logistic regression
+    for i in range(max_iters):
+        # get loss and update w.
+        loss, w = learning_by_gradient_descent_reg(y, x, w, gamma,lambda_)
+        # log info
+        if i % 10 == 0:
+            print("Current iteration={i}, loss={l}".format(i=i, l=loss))
+        # converge criterion
+        losses.append(loss)
+        if i == 0:
+            diff = losses[0]
+        else:
+            diff = np.abs(losses[-1] - losses[-2])
+        if len(losses) > 1 and diff < threshold:
+            break
+    return losses, w
+
+def PCA(tx, t):
+    """Apply PCA to a given set of datapoints in D-dimension."""
+    cov_matrix = np.cov(tx.T)
+    eigen_values, eigen_vectors = np.linalg.eig(cov_matrix)
+    
+    # Top k eigenvectors bear the most information about the data distribution
+    sort_indices = eigen_values.argsort()[::-1]
+    eigen_values = eigen_values[sort_indices]
+    eigen_vectors = eigen_vectors[:,sort_indices]
+    eigenval = np.asarray(eigen_values)
+    eigenvec = np.asarray(eigen_vectors)
+    total = sum(eigenval)
+    
+    explained_variance =[]   #how much information can be attributed to each of the principal component
+    k_feature = 0
+    sum_explained_var = 0
+    for i in eigenval:
+        explained_variance.append([(i/total)*100])
+        sum_explained_var += (i/total)
+        if sum_explained_var < t: 
+            k_feature += 1  
+    print('Kept features:', k_feature)
+    return eigen_values, eigen_vectors[:,:k_feature], explained_variance
