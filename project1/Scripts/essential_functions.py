@@ -53,14 +53,11 @@ def cross_validation(y, x, k_indices, k_fold, lambda_):
         
     return np.mean(loss_tr),np.mean(loss_te)
 
-def column_estimation(nan_data, lambdas, k_fold):
-    seed = 27
+def column_estimation(nan_data):
     
     n_samples, n_features = np.shape(nan_data)
     nan_columns = nan_find_columns(nan_data)
     submatrix = np.delete(nan_data, nan_columns, axis = 1)
-    loss_te = np.ones(len(lambdas))
-    loss_tr = np.ones(len(lambdas))
 
     for chosen_feature in nan_columns:
         samples = []
@@ -70,12 +67,8 @@ def column_estimation(nan_data, lambdas, k_fold):
         nan_lines = np.unique(samples)
         submatrix0 = np.delete(submatrix, nan_lines, axis = 0)
         labels0 = np.delete(nan_data[:,chosen_feature], nan_lines, axis = 0)
-        k_indices = build_k_indices(labels0, k_fold, seed)
-        for idx, lambda_ in enumerate(lambdas):
-            loss_tr[idx],loss_te[idx] = cross_validation(labels0, submatrix0, k_indices, k_fold, lambda_)
-        best_lambda = lambdas[np.argmin(loss_te)]
-        weights_c, loss = ridge_regression(labels0, submatrix0, best_lambda)
-    
+        
+        weights_c, _ = least_squares(labels0, submatrix0)
         x_pred = np.dot(submatrix[nan_lines,:], weights_c)
         nan_data[nan_lines, chosen_feature] = x_pred
         
@@ -97,12 +90,10 @@ def compute_loss(y, tx, w):
     """Calculate the mse loss."""
     y_pred = predict_labels(w, tx)
     y_pred[y_pred == -1] = 0
+    y[y == -1] = 0
     e = y - y_pred
-    return calculate_mse(e)
-
-def calculate_mse(e):
-    """Calculate the mse for vector e."""
-    return 1/2*np.mean(e**2)
+    mse = 1/2*np.mean(e**2)
+    return mse
 
 def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
     """Cross-validation with the loss of ridge regression."""
@@ -126,7 +117,7 @@ def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
         poly_te = build_poly(x_te, degree)
       
         # ridge regression
-        w, _ = ridge_regression(y_tr, poly_tr, lambda_)
+        w, loss_tr = ridge_regression(y_tr, poly_tr, lambda_)
         y_pred = predict_labels(w, poly_te)
         score = accuracy(y_pred, y_te)
         
@@ -157,3 +148,22 @@ def predict_labels(weights, data):
     y_pred[np.where(y_pred > 0)] = 1
     
     return y_pred
+
+def standardize_train(train_data):
+    """Standardize the data along the feature axis."""
+    mean_data = np.mean(train_data, axis = 0)
+    centered_data = train_data - mean_data
+    std_data = np.std(centered_data, axis = 0)
+    standardized_data = centered_data / std_data
+    return standardized_data, mean_data, std_data
+
+def standardize_test(test_data, mean_train, std_train):
+    standardized_data_te = (test_data - mean_train) / std_train
+    return standardized_data_te
+
+def least_squares(y, tx):
+    """Calculate the least squares solution using normal equations."""
+    inverse = np.linalg.inv(np.transpose(tx)@tx)
+    weights = inverse@np.transpose(tx)@y
+    loss = compute_loss(y, tx, weights)
+    return weights, loss
