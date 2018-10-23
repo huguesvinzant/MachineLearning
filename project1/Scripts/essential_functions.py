@@ -114,8 +114,8 @@ def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
     """Cross-validation with the loss of ridge regression."""
     loss_tr = []
     loss_te = []
-    initial_w = np.zeros((len(x[0]),1))
     max_iters = 10
+    initial_w = np.zeros((len(x[0]),1))
     #gamma = 0.01
     for k in range(k_fold):
         # get k'th subgroup in test, others in train
@@ -137,9 +137,8 @@ def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
         score = accuracy(y_pred, y_te)
         
         # logistic regression
+        #initial_w = np.zeros((len(poly_tr[0]),1))
         #w,loss_tr = logistic_regression(y_tr,poly_tr, initial_w,max_iters,lambda_)
-        #y_pred = predict_labels(w,poly_te)
-        #score = accuracy (y_pred,y_te)
         
         # calculate the loss for test data
         loss_te.append(compute_loss(y_te, poly_te, w))
@@ -187,25 +186,26 @@ def least_squares(y, tx):
     weights = inverse@np.transpose(tx)@y
     loss = compute_loss(y, tx, weights)
     return weights, loss
+
 ## LOGISTIC REGRESSION
 
 def sigmoid(t):
-    """Apply sigmoid function on t."""
-    return 1.0 / (1 + np.exp(-t))
-
+    """Apply stable sigmoid function on t."""
+    return 1.0 / (1.0 + np.exp(-t))
+    
 def calculate_loss(y, tx, w):
     """Compute the cost by negative log-likelihood."""
-    y[y == -1] = 0
-    pred = sigmoid(tx.dot(w))
-    error = y - pred
-    #loss = (((y - pred)**2).mean(axis = 0)) / 2
-    loss = y.T.dot(np.log(pred)) + (1 - y).T.dot(np.log(1 - pred))
-    return np.squeeze(- loss)
+    data = tx.dot(w)
+    data_std,_,_ = standardize_train(data)
+    pred = sigmoid(data_std)
+    loss = y.T.dot(np.log(pred)) + (1.0 - y).T.dot(np.log(1.0 - pred))
+    return np.squeeze(- loss) # why squeeze?
 
 def calculate_gradient(y, tx, w):
     """Compute the gradient of loss for sigmoidal prediction."""
     pred = sigmoid(tx.dot(w))
-    grad = np.transpose(tx) @ (pred - y)
+    err = pred - y
+    grad = np.transpose(tx) @ err
     return grad
 
 def learning_by_gradient_descent(y, tx, w, gamma):
@@ -215,7 +215,8 @@ def learning_by_gradient_descent(y, tx, w, gamma):
     """
     loss = calculate_loss(y, tx, w)
     grad = calculate_gradient(y, tx, w)
-    return loss, (w - gamma * grad)
+    new_w = w - gamma * grad
+    return loss, new_w
 
 
 def logistic_regression(y, x, initial_w,max_iters, gamma):
@@ -223,19 +224,18 @@ def logistic_regression(y, x, initial_w,max_iters, gamma):
     Does one step of gradient descent using logistic regression. 
     Return the loss and the updated weight w.
     """
-    threshold = 1
+    threshold = 1e-09
     losses = []
+    w = initial_w
     # build tx including w_0 weight
-    x = np.c_[np.ones((y.shape[0], 1)), x]
-    w = np.zeros((x.shape[1], 1))
-    initial_w = w
+    #x = np.c_[np.ones((y.shape[0], 1)), x]
     # start the logistic regression
     for i in range(max_iters):
         # get loss and update w.
         loss, w = learning_by_gradient_descent(y, x, w, gamma)
         # log info
-        if i % 10 == 0:
-            print("Current iteration={i}, loss={l}".format(i=i, l=loss))
+        #if i % 10 == 0:
+        print("Current iteration={i}, loss={l}".format(i=i, l=loss))
         # converge criterion
         losses.append(loss)
         if i == 0:
@@ -253,26 +253,26 @@ def learning_by_gradient_descent_reg(y, tx, w, gamma,lambda_):
     """
     loss = calculate_loss(y, tx, w)
     grad = calculate_gradient(y, tx, w)
-    return loss, (w - gamma * grad - gamma * lambda_*w)
+    new_w = w - gamma * grad - gamma * lambda_*w
+    return loss, new_w
 
 def reg_logistic_regression(y, x, lambda_, initial_w,max_iters, gamma):
     """
     Do one step of gradient descent using reg_logistic regression.
     Return the loss and the updated w.
     """
+    
     threshold = 1e-8
     losses = []
-    # build tx
-    x = np.c_[np.ones((y.shape[0], 1)), x]
-    w = np.zeros((x.shape[1], 1))
-    initial_w = w
+    w = initial_w
+    #x = np.c_[np.ones((y.shape[0], 1)), x]
     # start the logistic regression
     for i in range(max_iters):
         # get loss and update w.
         loss, w = learning_by_gradient_descent_reg(y, x, w, gamma,lambda_)
         # log info
-        if i % 10 == 0:
-            print("Current iteration={i}, loss={l}".format(i=i, l=loss))
+        #if i % 10 == 0:
+        print("Current iteration={i}, loss={l}".format(i=i, l=loss))
         # converge criterion
         losses.append(loss)
         if i == 0:
