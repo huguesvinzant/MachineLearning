@@ -2,36 +2,23 @@ import numpy as np
 
 from proj1_helpers import *
 
-def get_jet_indices(labels, raw_data):
-    """Get the sample idices of each number of jets"""
-    jet_0 = []
-    jet_1 = []
-    jet_2 = []
-    for i in range(len(labels)):
-        if raw_data[i,23] == -999:
-            jet_0.append(i)
-        else:
-            if raw_data[i,4] == -999:
-                jet_1.append(i)
-            else:
-                jet_2.append(i)
-    return np.asarray(jet_0), np.asarray(jet_1), np.asarray(jet_2)
+def meaningless_to_nan(tx):
+    """Remove meaningless -999 values (as explained in guidelines) 
+        from training dataset by converting them into NaN."""
+    tx[tx == -999] = np.NaN
+    return tx
+
+
                 
 def divide_data(labels, raw_data):
     """Divide the data according to the number of jets"""
-    jet0, jet1, jet2 = get_jet_indices(labels, raw_data)
-    
-    jet0_labels = labels[jet0]
-    jet0_data = raw_data[jet0,:]
-    jet0_data[jet0_data == -999] = 0
-
-    jet1_labels = labels[jet1]
-    jet1_data = raw_data[jet1,:]
-    jet1_data[jet1_data == -999] = 0
-
-    jet2_labels = labels[jet2]
-    jet2_data = raw_data[jet2,:]
-    jet2_data[jet2_data == -999] = 0
+    # information of jets given by the 22th feature
+    jet0_data = raw_data[np.where(raw_data[:,22]== 0)[0],:]
+    jet0_labels = labels[np.where(raw_data[:,22]== 0)[0]]
+    jet1_data = raw_data[np.where(raw_data[:,22]== 1)[0],:]
+    jet1_labels = labels[np.where(raw_data[:,22]== 1)[0]]
+    jet2_data = raw_data[np.where(raw_data[:,22] > 1)[0],:]
+    jet2_labels = labels[np.where(raw_data[:,22] > 1)[0]]
     
     return jet0_labels, jet0_data, jet1_labels, jet1_data, jet2_labels, jet2_data
 
@@ -65,38 +52,150 @@ def compute_loss(y, tx, w):
     mse = 1/2*np.mean(e**2)
     return mse
 
-def column_estimation_train(data):
-    feature = 0
-    n_samples, n_features = np.shape(data)
-    data[data == -999] = np.NaN
-    
-    submatrix = np.delete(data, feature, axis = 1)
-
+def column_estimation_train(nan_data):
+    chosen_feature = 0
+    n_samples, n_features = np.shape(nan_data)
+    submatrix = np.delete(nan_data,chosen_feature, axis = 1)
+    weights_train = np.zeros((1,n_features))
     samples = []
     for sample in range(n_samples):
-        if np.isnan(data[sample,feature]):
+        if np.isnan(nan_data[sample,chosen_feature]):
             samples.append(sample)
-        nan_lines = np.unique(samples)
-    
+    nan_lines = np.unique(samples)
     submatrix0 = np.delete(submatrix, nan_lines, axis = 0)
-    labels0 = np.delete(data[:,feature], nan_lines, axis = 0)
+    labels0 = np.delete(nan_data[:,chosen_feature], nan_lines, axis = 0)
+    weights_train[1,:], _ = least_squares(labels0, submatrix0)
+    x_pred = np.dot(submatrix[nan_lines,:], weights_train[1,:])
+    nan_data[nan_lines, chosen_feature] = x_pred
         
-    weights_train, _ = least_squares(labels0, submatrix0)
-    x_pred = np.dot(submatrix[nan_lines,:], weights_train)
-    data[nan_lines, feature] = x_pred
-        
-    return data, weights_train
+    return nan_data,weights_train
 
 def column_estimation_test(nan_data,nan_columns,weights_train):
+    chosen_feature = 0
     n_samples, n_features = np.shape(nan_data)
-    submatrix = np.delete(nan_data, nan_columns, axis = 1)
-    for f_ind, chosen_feature in enumerate(nan_columns):
-        samples = []
-        for sample in range(n_samples):
-            if np.isnan(nan_data[sample,chosen_feature]):
-                samples.append(sample)
-        nan_lines = np.unique(samples)
-        x_pred = np.dot(submatrix[nan_lines,:], weights_train[f_ind,:])
-        nan_data[nan_lines, chosen_feature] = x_pred
+    submatrix = np.delete(nan_data,chosen_feature, axis = 1)
+    weights_train = np.zeros((1,n_features))
+    samples = []
+    for sample in range(n_samples):
+        if np.isnan(nan_data[sample,chosen_feature]):
+            samples.append(sample)
+    nan_lines = np.unique(samples)
+    submatrix0 = np.delete(submatrix, nan_lines, axis = 0)
+    labels0 = np.delete(nan_data[:,chosen_feature], nan_lines, axis = 0)
+    x_pred = np.dot(submatrix[nan_lines,:], weights_train[1,:])
+    nan_data[nan_lines, chosen_feature] = x_pred
         
     return nan_data
+
+
+def build_k_indices(y, k_fold, seed):
+    """build k indices for k-fold."""
+    num_row = y.shape[0]
+    interval = int(num_row / k_fold)
+    np.random.seed(seed)
+    indices = np.random.permutation(num_row)
+    k_indices = [indices[k * interval: (k + 1) * interval]
+                 for k in range(k_fold)]
+    return np.array(k_indices)
+
+def cross_validation(y, x, k_indices, k_fold, lambda_):
+    """Return the loss of ridge regression."""
+    loss_tr = []
+    loss_te = []
+    initial_w = np.zeros((len(x[0]),1))
+    max_iters = 1
+    gamma = 0.01
+    for k in range(k_fold):
+        # get k'th subgroup in test, others in train
+        y_te = y[k_indices[k]]
+        x_te = x[k_indices[k]]
+        list_tr = []
+        for l in range(k_fold):
+            if l != k:
+                list_tr.append(k_indices[l])
+        y_tr = y[np.concatenate(list_tr)]
+        x_tr = x[np.concatenate(list_tr)]
+        # ridge regression
+        w, _ = ridge_regression(y_tr, x_tr, lambda_)
+        # calculate the loss for train and test data
+        loss_tr.append(compute_loss(y_tr, x_tr, w))
+        loss_te.append(compute_loss(y_te, x_te, w))
+        
+    return np.mean(loss_tr),np.mean(loss_te)
+
+def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
+    """Cross-validation with the loss of ridge regression."""
+    loss_tr = []
+    loss_te = []
+    max_iters = 10
+    initial_w = np.zeros((len(x[0]),1))
+    #gamma = 0.01
+    for k in range(k_fold):
+        # get k'th subgroup in test, others in train
+        y_te = y[k_indices[k]]
+        x_te = x[k_indices[k]]
+        list_tr = []
+        for l in range(k_fold):
+            if l != k:
+                list_tr.append(k_indices[l])
+        y_tr = y[np.concatenate(list_tr)]
+        x_tr = x[np.concatenate(list_tr)]
+        #form data with polynomial degree
+        poly_tr = build_poly(x_tr, degree)
+        poly_te = build_poly(x_te, degree)
+      
+        # ridge regression
+        w, loss_tr = ridge_regression(y_tr, poly_tr, lambda_)
+        y_pred = predict_labels(w, poly_te)
+        score = accuracy(y_pred, y_te)
+        
+        # logistic regression
+        #initial_w = np.zeros((len(poly_tr[0]),1))
+        #w,loss_tr = logistic_regression(y_tr,poly_tr, initial_w,max_iters,lambda_)
+        
+        # calculate the loss for test data
+        loss_te.append(compute_loss(y_te, poly_te, w))
+        
+    return np.mean(loss_tr),np.mean(loss_te), score
+
+def build_poly(x, degree):
+    """Polynomial basis functions for input data x, for j=0 up to j=degree."""
+    poly = np.ones((len(x), 1))
+    for deg in range(1, degree+1):
+        poly = np.c_[poly, np.power(x, deg)]
+    return poly
+def ridge_regression(y, tx, lambda_):
+    '''Explicit solution for the weights using ridge regression.'''
+    # compute another lambda to simplify notation
+    lambda_prime = lambda_ * 2 * len(y)
+    # compute explicit solution for the weights
+    a = np.transpose(tx) @ tx + lambda_prime * np.identity(tx.shape[1])
+    b = np.transpose(tx) @ y
+    weights = np.linalg.solve(a, b)
+    # calculate loss
+    loss = compute_loss(y, tx, weights)
+    return weights, loss
+
+def compute_loss(y, tx, w):
+    """Calculate the mse loss."""
+    y_pred = predict_labels(w, tx)
+    y_pred[y_pred == -1] = 0
+    y[y == -1] = 0
+    e = y - y_pred
+    mse = 1/2*np.mean(e**2)
+    return mse
+def accuracy (y_pred,y):
+    """Compute accuracy."""
+    prop = 0
+    for i in range(len(y)):
+        if y_pred[i] == y[i]:
+            prop += 1
+    return prop/len(y)
+
+def predict_labels(weights, data):
+    """Generates class predictions given weights, and a test data matrix"""
+    y_pred = np.dot(data, weights)
+    y_pred[np.where(y_pred <= 0)] = -1
+    y_pred[np.where(y_pred > 0)] = 1
+    
+    return y_pred
