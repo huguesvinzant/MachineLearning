@@ -58,8 +58,9 @@ def column_estimation_train(nan_data):
     n_samples, n_features = np.shape(nan_data)
     nan_columns = nan_find_columns(nan_data)
     submatrix = np.delete(nan_data, nan_columns, axis = 1)
+    weights_train = np.zeros((len(nan_columns),n_features-len(nan_columns)))
 
-    for chosen_feature in nan_columns:
+    for f_ind, chosen_feature in enumerate(nan_columns):
         samples = []
         for sample in range(n_samples):
             if np.isnan(nan_data[sample,chosen_feature]):
@@ -68,8 +69,8 @@ def column_estimation_train(nan_data):
         submatrix0 = np.delete(submatrix, nan_lines, axis = 0)
         labels0 = np.delete(nan_data[:,chosen_feature], nan_lines, axis = 0)
         
-        weights_train, _ = least_squares(labels0, submatrix0)
-        x_pred = np.dot(submatrix[nan_lines,:], weights_train)
+        weights_train[f_ind,:], _ = least_squares(labels0, submatrix0)
+        x_pred = np.dot(submatrix[nan_lines,:], weights_train[f_ind,:])
         nan_data[nan_lines, chosen_feature] = x_pred
         
     return nan_data,nan_columns,weights_train
@@ -77,13 +78,13 @@ def column_estimation_train(nan_data):
 def column_estimation_test(nan_data,nan_columns,weights_train):
     n_samples, n_features = np.shape(nan_data)
     submatrix = np.delete(nan_data, nan_columns, axis = 1)
-    for chosen_feature in nan_columns:
+    for f_ind, chosen_feature in enumerate(nan_columns):
         samples = []
         for sample in range(n_samples):
             if np.isnan(nan_data[sample,chosen_feature]):
                 samples.append(sample)
         nan_lines = np.unique(samples)
-        x_pred = np.dot(submatrix[nan_lines,:], weights_train)
+        x_pred = np.dot(submatrix[nan_lines,:], weights_train[f_ind,:])
         nan_data[nan_lines, chosen_feature] = x_pred
         
     return nan_data
