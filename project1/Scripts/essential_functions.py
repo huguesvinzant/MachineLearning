@@ -195,9 +195,12 @@ def sigmoid(t):
     
 def calculate_loss(y, tx, w):
     """Compute the cost by negative log-likelihood."""
-    data = tx.dot(w)
-    data_std,_,_ = standardize_train(data)
-    pred = sigmoid(data_std)
+    pred = sigmoid(tx.dot(w))
+    for i in range(len(pred)):
+        if pred[i] == 0:
+            pred[i] = 0.0000001
+        if pred[i] == 1:
+            pred[i] = 0.9999999
     loss = y.T.dot(np.log(pred)) + (1.0 - y).T.dot(np.log(1.0 - pred))
     return np.squeeze(- loss) # why squeeze?
 
