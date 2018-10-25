@@ -132,13 +132,13 @@ def cross_validation_(y, x, k_indices, k_fold, lambda_, degree):
         poly_te = build_poly(x_te, degree)
       
         # ridge regression
-        w, loss_tr = ridge_regression(y_tr, poly_tr, lambda_)
-        y_pred = predict_labels(w, poly_te)
-        score = accuracy(y_pred, y_te)
+        #w, loss_tr = ridge_regression(y_tr, poly_tr, lambda_)
+        #y_pred = predict_labels(w, poly_te)
+        #score = accuracy(y_pred, y_te)
         
         # logistic regression
-        #initial_w = np.zeros((len(poly_tr[0]),1))
-        #w,loss_tr = logistic_regression(y_tr,poly_tr, initial_w,max_iters,lambda_)
+        initial_w = np.zeros((len(poly_tr[0]),1))
+        w,loss_tr = logistic_regression(y_tr,poly_tr, initial_w,max_iters,lambda_)
         
         # calculate the loss for test data
         loss_te.append(compute_loss(y_te, poly_te, w))
@@ -196,13 +196,9 @@ def sigmoid(t):
 def calculate_loss(y, tx, w):
     """Compute the cost by negative log-likelihood."""
     pred = sigmoid(tx.dot(w))
-    for i in range(len(pred)):
-        if pred[i] == 0:
-            pred[i] = 0.0000001
-        if pred[i] == 1:
-            pred[i] = 0.9999999
-    loss = y.T.dot(np.log(pred)) + (1.0 - y).T.dot(np.log(1.0 - pred))
-    return np.squeeze(- loss) # why squeeze?
+    correction_factor = 1e-15;
+    loss = y.T.dot(np.log(pred + correction_factor)) + (1.0 - y).T.dot(np.log(1.0 - (pred - correction_factor)))
+    return np.squeeze(- loss) # try the other loss by mail
 
 def calculate_gradient(y, tx, w):
     """Compute the gradient of loss for sigmoidal prediction."""
@@ -227,25 +223,27 @@ def logistic_regression(y, x, initial_w,max_iters, gamma):
     Does one step of gradient descent using logistic regression. 
     Return the loss and the updated weight w.
     """
-    threshold = 1e-09
+    stop_threshold = 1e-11
+    implementation_threshold = 1e-07
     losses = []
     w = initial_w
-    # build tx including w_0 weight
-    #x = np.c_[np.ones((y.shape[0], 1)), x]
     # start the logistic regression
     for i in range(max_iters):
         # get loss and update w.
         loss, w = learning_by_gradient_descent(y, x, w, gamma)
         # log info
-        #if i % 10 == 0:
-        print("Current iteration={i}, loss={l}".format(i=i, l=loss))
+        if i % 10 == 0:
+            print("Current iteration={i}, logistic loss={l}".format(i=i, l=loss))
+            gamma = 0.5*gamma;
         # converge criterion
         losses.append(loss)
         if i == 0:
             diff = losses[0]
         else:
             diff = np.abs(losses[-1] - losses[-2])
-        if len(losses) > 1 and diff < threshold:
+        if len(losses) > 1 and diff < implementation_threshold:
+            gamma = 0.5*gamma;
+        if len(losses) > 1 and diff < stop_threshold:
             break
     return losses, w
 
@@ -265,47 +263,44 @@ def reg_logistic_regression(y, x, lambda_, initial_w,max_iters, gamma):
     Return the loss and the updated w.
     """
     
-    threshold = 1e-8
+    stop_threshold = 1e-11
+    implementation_threshold = 1e-07
     losses = []
     w = initial_w
-    #x = np.c_[np.ones((y.shape[0], 1)), x]
     # start the logistic regression
     for i in range(max_iters):
         # get loss and update w.
         loss, w = learning_by_gradient_descent_reg(y, x, w, gamma,lambda_)
         # log info
-        #if i % 10 == 0:
-        print("Current iteration={i}, loss={l}".format(i=i, l=loss))
+        if i % 10 == 0:
+            print("Current iteration={i}, reg logistic loss={l}".format(i=i, l=loss))
         # converge criterion
         losses.append(loss)
         if i == 0:
             diff = losses[0]
         else:
             diff = np.abs(losses[-1] - losses[-2])
-        if len(losses) > 1 and diff < threshold:
+        if len(losses) > 1 and diff < implementation_threshold:
+            gamma = 0.5*gamma;
+        if len(losses) > 1 and diff < stop_threshold:
             break
     return losses, w
 
-def PCA(tx, t):
-    """Apply PCA to a given set of datapoints in D-dimension."""
-    cov_matrix = np.cov(tx.T)
-    eigen_values, eigen_vectors = np.linalg.eig(cov_matrix)
+
+def predict_labels_log(weights, data):
+    """Generates class predictions given weights, and a test data matrix"""
+    y_pred = np.dot(data, weights)
+    y_pred = sigmoid(y_pred)
+    y_pred[np.where(y_pred <= 0.5)] = 0
+    y_pred[np.where(y_pred > 0.5)] = 1
     
-    # Top k eigenvectors bear the most information about the data distribution
-    sort_indices = eigen_values.argsort()[::-1]
-    eigen_values = eigen_values[sort_indices]
-    eigen_vectors = eigen_vectors[:,sort_indices]
-    eigenval = np.asarray(eigen_values)
-    eigenvec = np.asarray(eigen_vectors)
-    total = sum(eigenval)
+    return y_pred
+
+def final_predict_labels_log(weights, data):
+    """Generates class predictions given weights, and a test data matrix"""
+    y_pred = np.dot(data, weights)
+    y_pred = sigmoid(y_pred)
+    y_pred[np.where(y_pred <= 0.5)] = -1
+    y_pred[np.where(y_pred > 0.5)] = 1
     
-    explained_variance =[]   #how much information can be attributed to each of the principal component
-    k_feature = 0
-    sum_explained_var = 0
-    for i in eigenval:
-        explained_variance.append([(i/total)*100])
-        sum_explained_var += (i/total)
-        if sum_explained_var < t: 
-            k_feature += 1  
-    print('Kept features:', k_feature)
-    return eigen_values, eigen_vectors[:,:k_feature], explained_variance
+    return y_pred
