@@ -8,17 +8,18 @@ def meaningless_to_nan(tx):
     tx[tx == -999] = np.NaN
     return tx
 
-def nan_find_columns(nan_data):
-    """Find columns contaning some NaN."""
-    n_samples, n_features = np.shape(nan_data)
-    features = []
-    for feature in range(n_features):
-        for sample in range(n_samples):
-            if np.isnan(nan_data[sample,feature]) and feature != 0:
-                features.append(feature)
-    nan_columns = np.unique(features)
-    print('Columns containing NaN', nan_columns)   
-    return nan_columns
+def find_null_variance_features(data):
+    variance = np.var(data, axis = 0)
+    no_var = np.where(variance == 0)
+    print('Columns with variance = 0 :', no_var)
+    return no_var
+
+def remove_novar_features(data, data_te):
+    no_var_columns = find_null_variance_features(data)
+    clean_data = np.delete(data, no_var_columns, axis = 1)
+    clean_data_te = np.delete(data_te, no_var_columns, axis = 1)
+    print('New data shape :', clean_data.shape)
+    return clean_data, clean_data_te
                 
 def divide_data(labels, raw_data):
     """Divide the data according to the number of jets"""
@@ -34,6 +35,7 @@ def divide_data(labels, raw_data):
 
 def standardize_train(train_data):
     """Standardize the train data along the feature axis."""
+    train_data = meaningless_to_nan(train_data)
     mean_data = np.nanmean(train_data, axis = 0)
     centered_data = train_data - mean_data
     std_data = np.nanstd(centered_data, axis = 0)
@@ -42,6 +44,7 @@ def standardize_train(train_data):
 
 def standardize_test(test_data, mean_train, std_train):
     """Standardize the test data along the feature axis."""
+    test_data = meaningless_to_nan(test_data)
     standardized_data_te = (test_data - mean_train) / std_train
     return standardized_data_te
 
@@ -59,39 +62,61 @@ def compute_loss(y, tx, w):
     mse = 1/2*np.mean(e**2)
     return mse
 
-def column_estimation_train(nan_data):
+def column_estimation_train(data):
     chosen_feature = 0
-    submatrix = np.delete(nan_data,chosen_feature, axis = 1)
+    nan_found = True
+    submatrix = np.delete(data,chosen_feature, axis = 1)
     n_samples, n_features = np.shape(submatrix)
     samples = []
     for sample in range(n_samples):
-        if np.isnan(nan_data[sample,chosen_feature]):
+        if (np.isnan(data[sample,chosen_feature])):
             samples.append(sample)
-    nan_lines = np.unique(samples)
-    submatrix_bis = np.delete(submatrix, nan_lines, axis = 0)
-    labels_bis = np.delete(nan_data[:,chosen_feature], nan_lines, axis = 0)
+    print(len(samples), 'NaN lines found')
+    submatrix_bis = np.delete(submatrix, samples, axis = 0)
+    labels_bis = np.delete(data[:,chosen_feature], samples, axis = 0)
     weights_train, _ = least_squares(labels_bis, submatrix_bis)
-    x_pred = np.dot(submatrix[nan_lines,:], weights_train)
-    nan_data[nan_lines, chosen_feature] = x_pred
-        
-    return nan_data,weights_train
+    x_pred = np.dot(submatrix[samples,:], weights_train)
+    data[samples, chosen_feature] = x_pred
+    
+    return data, weights_train
 
-def column_estimation_test(nan_data, weights_train):
+def column_estimation_test(data, weights_train):
     chosen_feature = 0
-    submatrix = np.delete(nan_data,chosen_feature, axis = 1)
+    submatrix = np.delete(data,chosen_feature, axis = 1)
     n_samples, n_features = np.shape(submatrix)
     samples = []
     for sample in range(n_samples):
-        if np.isnan(nan_data[sample,chosen_feature]):
+        if (np.isnan(data[sample,chosen_feature])):
             samples.append(sample)
-    nan_lines = np.unique(samples)
-    submatrix_bis = np.delete(submatrix, nan_lines, axis = 0)
-    labels_bis = np.delete(nan_data[:,chosen_feature], nan_lines, axis = 0)
+    submatrix_bis = np.delete(submatrix, samples, axis = 0)
+    labels_bis = np.delete(data[:,chosen_feature], samples, axis = 0)
     
-    x_pred = np.dot(submatrix[nan_lines,:], weights_train)
-    nan_data[nan_lines, chosen_feature] = x_pred
+    x_pred = np.dot(submatrix[samples,:], weights_train)
+    data[samples, chosen_feature] = x_pred
         
-    return nan_data
+    return data
+
+def find_best_parameters(labels, data, k_fold, lambdas, degrees, seed):
+    k_idx = build_k_indices(labels, k_fold, seed)
+    loss_te = np.ones((len(degrees),len(lambdas)))
+    scores = np.ones((len(degrees),len(lambdas)))
+    
+    for degree_idx, degree in enumerate(degrees):
+        for lambda_idx, lambda_ in enumerate(lambdas):
+            _ ,loss_te[degree_idx, lambda_idx], scores[degree_idx, lambda_idx]= cross_validation(labels, data, k_idx, k_fold, lambda_, degree)
+            #print('Degree:', degrees[degree_idx], 'Lambda:', lambdas[lambda_idx])
+            #print('Score:', scores[degree_idx, lambda_idx])
+            #print('Loss:', loss_te[degree_idx, lambda_idx])
+    
+    ratio = scores/loss_te
+    best_HP_idx = np.unravel_index(np.argmax(scores), np.shape(scores))
+    best_degree = degrees[best_HP_idx[0]]
+    best_lambda = lambdas[best_HP_idx[1]]
+    best_score = scores[best_HP_idx[0], best_HP_idx[1]]
+    best_loss = loss_te[best_HP_idx[0], best_HP_idx[1]]
+    print('Best degree:', best_degree, 'Best lambda:', best_lambda, 'Best score:', best_score, 'Best loss:', best_loss)
+    
+    return best_degree, best_lambda
 
 def build_k_indices(y, k_fold, seed):
     """build k indices for k-fold."""
@@ -176,4 +201,11 @@ def predict_labels(weights, data):
     y_pred[np.where(y_pred <= 0)] = -1
     y_pred[np.where(y_pred > 0)] = 1
     
+    return y_pred
+
+def make_predictions(estimated_data, labels, estimated_data_te, best_lambda, best_degree):
+    poly_data = build_poly(estimated_data, best_degree)
+    weights, loss = ridge_regression(labels, poly_data, best_lambda)
+    poly_data_te = build_poly(estimated_data_te, best_degree)
+    y_pred = predict_labels(weights, poly_data_te)
     return y_pred
