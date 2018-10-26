@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 """Some helper functions for project 1."""
 import csv
 import numpy as np
