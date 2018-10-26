@@ -162,12 +162,12 @@ def learning_by_gradient_descent(y, tx, w, gamma):
     
     loss = calculate_logistic_loss(y, tx, w)
     grad = calculate_logistic_gradient(y, tx, w)
-    w -= gamma * grad
+    new_w -= gamma * grad
     
-    return loss, w
+    return loss, new_w
 
 
-def learning_by_penalized_gradient(y, tx, w, gamma,lambda_):
+def learning_by_penalized_gradient(y, tx, w, gamma, lambda_):
     """Do one step of gradient descent using regularized logistic regression."""
     
     loss = calculate_logistic_loss(y, tx, w)+ lambda_ * np.squeeze(w.T.dot(w))
