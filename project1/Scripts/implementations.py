@@ -310,7 +310,7 @@ def find_best_parameters(labels, data, k_fold, lambdas, degrees, seed): #rename 
     #Best score
     best_score = scores[best_HP_idx[0], best_HP_idx[1]]
     
-    return best_degree, best_lambda, best_score
+    return best_degree, best_lambda, best_score, scores
 
 
 def logistic_find_best_parameters(y, tx, lambdas, gamma, degrees):
