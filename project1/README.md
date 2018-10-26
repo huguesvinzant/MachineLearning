@@ -32,16 +32,18 @@ The code is composed of the following files:
 
  - run.py
  
- CONTENT: Contains the full executable code performing the loading, preprocessing of the data, training and cross-validation of the model, and the prediction and classification. This file import the functions of all the other files.
+ CONTENT: Contains the full executable code performing the loading, preprocessing of the data, training and cross-validation of the model, and the prediction and classification. This file imports the functions of all the files implementations.py and proj1_helpers.py. 
 
  - implementations.py
  
- CONTENT: Is divided into three parts:
- 	Part IMPLEMENTATIONS: Contains the 6 required methods, that is, least_squares_GD, least_squares_SGD, least_squares, 				  ridge_regression, logistic_regression, reg_logistic_regression. Not all of them are used.
+ CONTENT: Contains the majority of the functions used in the project. For more details about each function, the read is redirected to the file in question. The file is divided into three parts:
+ 
+ 	- Part IMPLEMENTATIONS: Contains the 6 required methods, that is, least_squares_GD, least_squares_SGD, least_squares, 				  ridge_regression, logistic_regression, reg_logistic_regression. Not all of them are used.
 	
-	Part UTILITARIES: Contains all functions required for the functions in IMPLEMENTATIONS, such as gradient calculations, 				 loss calculations, learning algorithms, score predictions, etc.  
+	- Part UTILITARIES: Contains all functions required for the functions in IMPLEMENTATIONS, such as gradient calculations, loss calculations, learning algorithms, score predictions, etc.  
 	
-	Part DATA PROCESSING: Contains all functions used for data pre-treatments, such as standardization, variance calculations, data splitting, removal of data, estimation of data, etc.
+	- Part DATA PROCESSING: Contains all functions used for data pre-treatments, such as standardization, variance 				      calculations, data splitting, removal of data, estimation of data, etc.
+	
 	
 - proj1_helpers.py
 
