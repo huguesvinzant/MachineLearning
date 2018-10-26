@@ -64,7 +64,7 @@ def compute_loss(y, tx, w):
 
 def column_estimation_train(data):
     chosen_feature = 0
-    nan_found = True
+    degree = 1
     submatrix = np.delete(data,chosen_feature, axis = 1)
     n_samples, n_features = np.shape(submatrix)
     samples = []
@@ -74,14 +74,19 @@ def column_estimation_train(data):
     print(len(samples), 'NaN lines found')
     submatrix_bis = np.delete(submatrix, samples, axis = 0)
     labels_bis = np.delete(data[:,chosen_feature], samples, axis = 0)
-    weights_train, _ = least_squares(labels_bis, submatrix_bis)
-    x_pred = np.dot(submatrix[samples,:], weights_train)
+    
+    poly = build_poly(submatrix_bis, degree)
+    weights_train, _ = least_squares(labels_bis, poly)
+    
+    poly_te = build_poly(submatrix[samples,:], degree)
+    x_pred = np.dot(poly_te, weights_train)
     data[samples, chosen_feature] = x_pred
     
     return data, weights_train
 
 def column_estimation_test(data, weights_train):
     chosen_feature = 0
+    degree = 1
     submatrix = np.delete(data,chosen_feature, axis = 1)
     n_samples, n_features = np.shape(submatrix)
     samples = []
@@ -91,7 +96,8 @@ def column_estimation_test(data, weights_train):
     submatrix_bis = np.delete(submatrix, samples, axis = 0)
     labels_bis = np.delete(data[:,chosen_feature], samples, axis = 0)
     
-    x_pred = np.dot(submatrix[samples,:], weights_train)
+    poly_te = build_poly(submatrix[samples,:], degree)
+    x_pred = np.dot(poly_te, weights_train)
     data[samples, chosen_feature] = x_pred
         
     return data
@@ -103,18 +109,15 @@ def find_best_parameters(labels, data, k_fold, lambdas, degrees, seed):
     
     for degree_idx, degree in enumerate(degrees):
         for lambda_idx, lambda_ in enumerate(lambdas):
-            _ ,loss_te[degree_idx, lambda_idx], scores[degree_idx, lambda_idx]= cross_validation(labels, data, k_idx, k_fold, lambda_, degree)
+            scores[degree_idx, lambda_idx]= cross_validation(labels, data, k_idx, k_fold, lambda_, degree)
             #print('Degree:', degrees[degree_idx], 'Lambda:', lambdas[lambda_idx])
             #print('Score:', scores[degree_idx, lambda_idx])
             #print('Loss:', loss_te[degree_idx, lambda_idx])
-    
-    ratio = scores/loss_te
     best_HP_idx = np.unravel_index(np.argmax(scores), np.shape(scores))
     best_degree = degrees[best_HP_idx[0]]
     best_lambda = lambdas[best_HP_idx[1]]
     best_score = scores[best_HP_idx[0], best_HP_idx[1]]
-    best_loss = loss_te[best_HP_idx[0], best_HP_idx[1]]
-    print('Best degree:', best_degree, 'Best lambda:', best_lambda, 'Best score:', best_score, 'Best loss:', best_loss)
+    print('Best degree:', best_degree, 'Best lambda:', best_lambda, 'Best score:', best_score)
     
     return best_degree, best_lambda
 
@@ -124,17 +127,12 @@ def build_k_indices(y, k_fold, seed):
     interval = int(num_row / k_fold)
     np.random.seed(seed)
     indices = np.random.permutation(num_row)
-    k_indices = [indices[k * interval: (k + 1) * interval]
-                 for k in range(k_fold)]
+    k_indices = [indices[k * interval: (k + 1) * interval] for k in range(k_fold)]
     return np.array(k_indices)
 
 def cross_validation(y, x, k_indices, k_fold, lambda_, degree):
     """Cross-validation with the loss of ridge regression."""
-    loss_tr = []
-    loss_te = []
-    max_iters = 10
-    initial_w = np.zeros((len(x[0]),1))
-    #gamma = 0.01
+    scores = []
     for k in range(k_fold):
         # get k'th subgroup in test, others in train
         y_te = y[k_indices[k]]
@@ -150,14 +148,11 @@ def cross_validation(y, x, k_indices, k_fold, lambda_, degree):
         poly_te = build_poly(x_te, degree)
       
         # ridge regression
-        w, loss_tr = ridge_regression(y_tr, poly_tr, lambda_)
+        w, _ = ridge_regression(y_tr, poly_tr, lambda_)
         y_pred = predict_labels(w, poly_te)
-        score = accuracy(y_pred, y_te)
+        scores.append(accuracy(y_pred, y_te))
         
-        # calculate the loss for test data
-        loss_te.append(compute_loss_labels(y_te, poly_te, w))
-        
-    return np.mean(loss_tr),np.mean(loss_te), score
+    return np.mean(scores)
 
 def build_poly(x, degree):
     """Polynomial basis functions for input data x, for j=0 up to j=degree."""
@@ -168,7 +163,6 @@ def build_poly(x, degree):
 
 def ridge_regression(y, tx, lambda_):
     '''Explicit solution for the weights using ridge regression.'''
-    # compute another lambda to simplify notation
     lambda_prime = lambda_ * 2 * len(y)
     # compute explicit solution for the weights
     a = np.transpose(tx) @ tx + lambda_prime * np.identity(tx.shape[1])
