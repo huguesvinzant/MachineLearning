@@ -80,7 +80,7 @@ k_fold = 10
 seed = 23
 
 #Find best parameters (cross validation)
-print('Ridge regression... : Finding best parameters with cross validation')
+print('Ridge regression... : Finding best parameters with cross validation...')
 best_degree0, best_lambda0, best_score0, _ = find_best_parameters_general(labels0, estimated_data0, k_fold, seed, lambdas=lambdas, degrees=degrees)
 print('Ridge regression... : 0 jet:', 'Best degree:', best_degree0, 'Best lambda:', best_lambda0, 'Best score:', best_score0)
 
@@ -122,7 +122,7 @@ gamma = 1e-5
 
 #Find best parameters (cross validation)
 
-print('Logistic regression...: Finding best parameters with cross validation')
+print('Logistic regression...: Finding best parameters with cross validation...')
 best_degree0, best_lambda0, best_score0, _ = find_best_parameters_general(labels0, estimated_data0, k_fold, seed, lambdas=lambdas, degrees=degrees, gamma=gamma)
 print('Logistic regression...: 0 jet:', 'Best degree:', best_degree0, 'Best lambda:', best_lambda0, 'Best score:', best_score0)
 
