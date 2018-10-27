@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from proj1_helpers import *
 
 ''''***********************************************************
@@ -236,51 +237,39 @@ def cross_validation_general(y, x, k_indices, k_fold, **param):
     
     score = []
     loss_te = np.zeros(k_fold)
-    if len(x.shape) == 1:
-        w = 0
-    else:
-        w = np.zeros(x.shape[1]) 
     
-        #k-fold
+    #k-fold
     for k in range(k_fold):
+        # get k'th subgroup in test, others in train
+        y_te = y[k_indices[k]]
+        x_te = x[k_indices[k]]
+        list_tr = []
+        for l in range(k_fold):
+            if l != k:
+                list_tr.append(k_indices[l])
+                
+        y_tr = y[np.concatenate(list_tr)]
+        x_tr = x[np.concatenate(list_tr)]
+        
+        #form data with polynomial degree
+        poly_tr = build_poly(x_tr, param['degree'])
+        poly_te = build_poly(x_te, param['degree'])
 
        # logistic
         if 'gamma' in param:
-            
-            idx = k_indices[k]
-            y_te = y[idx]
-            if len(x.shape) == 1:
-                x_te = x[idx]
-            else:
-                x_te = x[idx,:]
-            y_tr = np.delete(y, idx, 0)
-            x_tr = np.delete(x, idx, 0)
-                
-            loss_te[k], w = learning_by_penalized_gradient(y_tr, x_tr, w, param['gamma'],                                                                                                       param['lambda_'])
-            y_pred = predict_labels_log(w, x_te)
+            initial_w = np.zeros(poly_tr.shape[1]) 
+            max_iters = 100
+            w, _ = reg_logistic_regression(y_tr, poly_tr, param['lambda_'], initial_w, max_iters, param['gamma'])
+            y_pred = predict_labels_log(w, poly_te)
             score.append(np.sum(y_pred == y_te) / len(y_te))
-        else:
-                    # get k'th subgroup in test, others in train
-            y_te = y[k_indices[k]]
-            x_te = x[k_indices[k]]
-            list_tr = []
-            for l in range(k_fold):
-                if l != k:
-                    list_tr.append(k_indices[l])
-                
-            y_tr = y[np.concatenate(list_tr)]
-            x_tr = x[np.concatenate(list_tr)]
         
-            #form data with polynomial degree
-            poly_tr = build_poly(x_tr, param['degree'])
-            poly_te = build_poly(x_te, param['degree'])
+        else:
             #ridge regression
             w, _ = ridge_regression(y_tr, poly_tr, param['lambda_'])
             y_pred = predict_labels(w, poly_te)
-            score.append(accuracy(y_pred, y_te))
-                
+            score.append(accuracy(y_pred, y_te))   
         
-    return np.mean(score), np.mean(loss_te)
+    return np.mean(score)
 
 
 def find_best_parameters_general(labels, data, k_fold, seed, **param): 
@@ -288,16 +277,15 @@ def find_best_parameters_general(labels, data, k_fold, seed, **param):
     
     #Initialize
     k_idx = build_k_indices(labels, k_fold, seed)
-    loss_te = np.ones((len(param['degrees']), len(param['lambdas'])))
     scores = np.ones((len(param['degrees']), len(param['lambdas'])))
     
     #Iterate over parameters
     for degree_idx, degree in enumerate(param['degrees']):
         for lambda_idx, lambda_ in enumerate(param['lambdas']):
-            scores[degree_idx, lambda_idx], loss_te[degree_idx, lambda_idx]=                                                                        cross_validation_general(labels, data, k_idx, k_fold, 
-                                                                    lambda_=lambda_, degree=degree)
             if 'gamma' in param:
-                    scores[degree_idx, lambda_idx], loss_te[degree_idx, lambda_idx] =                                                               cross_validation_general(labels, data, k_idx, k_fold,                                                                       lambda_=lambda_, degree=degree, gamma=param['gamma'])
+                    scores[degree_idx, lambda_idx] = cross_validation_general(labels, data, k_idx, k_fold, lambda_=lambda_, degree=degree, gamma=param['gamma'])
+            else:
+                scores[degree_idx, lambda_idx] = cross_validation_general(labels, data, k_idx, k_fold, lambda_=lambda_, degree=degree)
                     
     #Select best parameters 
     best_HP_idx = np.unravel_index(np.argmax(scores), np.shape(scores))
@@ -305,9 +293,8 @@ def find_best_parameters_general(labels, data, k_fold, seed, **param):
     best_lambda = param['lambdas'][best_HP_idx[1]]
     #Best score
     best_score = scores[best_HP_idx[0], best_HP_idx[1]]
-    best_loss = loss_te[best_HP_idx[0], best_HP_idx[1]]
 
-    return best_degree, best_lambda, best_score, scores, best_loss
+    return best_degree, best_lambda, best_score, scores
 
 def make_predictions(estimated_data, labels, estimated_data_te, best_lambda, best_degree):
     """Use the best parameters to make the prediction for ridge regression."""
