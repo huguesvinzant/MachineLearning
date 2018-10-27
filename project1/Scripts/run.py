@@ -127,3 +127,6 @@ labels_te[np.where(raw_data_te[:,22] == 1)[0]] = y_pred1
 labels_te[np.where(raw_data_te[:,22] > 1)[0]] = y_pred2
 
 create_csv_submission(indices_te, labels_te, 'jet_log.csv')
+
+print('Execution completed. Submission files may found in the local folder alongside with run.py.')
+print('Authors: Gaia Carparelli, Hugues Vinzant, Axel Bisi.')

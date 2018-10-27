@@ -231,35 +231,6 @@ def build_k_indices(y, k_fold, seed):
     
     return np.array(k_indices)
 
-def cross_validation(y, x, k_indices, k_fold, lambda_, degree): #rename with ridge????
-    """Cross-validation for ridge regression."""
-    
-    score = []
-    #k-fold
-    for k in range(k_fold):
-        # get k'th subgroup in test, others in train
-        y_te = y[k_indices[k]]
-        x_te = x[k_indices[k]]
-        list_tr = []
-        for l in range(k_fold):
-            if l != k:
-                list_tr.append(k_indices[l])
-                
-        y_tr = y[np.concatenate(list_tr)]
-        x_tr = x[np.concatenate(list_tr)]
-        
-        #form data with polynomial degree
-        poly_tr = build_poly(x_tr, degree)
-        poly_te = build_poly(x_te, degree)
-        
-        # ridge regression
-        w, _ = ridge_regression(y_tr, poly_tr, lambda_)
-        y_pred = predict_labels(w, poly_te)
-        score.append(accuracy(y_pred, y_te))
-        
-    return np.mean(score)
-
-#trial single function
 def cross_validation_general(y, x, k_indices, k_fold, **param): #make sure when you call param['...']
     """Cross-validation for ridge regression."""
     
@@ -303,36 +274,6 @@ def cross_validation_general(y, x, k_indices, k_fold, **param): #make sure when 
     return np.mean(score), np.mean(loss_te)
 
 
-
-def cross_validation_log(y, x, k_indices, gamma, lambda_):
-    """Cross-validation for regularized logistic regression."""
-    
-    kfolds = k_indices.shape[0]
-    accuracy = np.zeros(kfolds)
-    loss_te = np.zeros(kfolds)
-    if len(x.shape) == 1:
-        w = 0
-    else:
-        w = np.zeros(x.shape[1]) 
-        
-    # k-fold    
-    for k in range(kfolds):
-        idx = k_indices[k]
-        yte = y[idx]
-        if len(x.shape) == 1:
-            xte = x[idx]
-        else:
-            xte = x[idx,:]
-        ytr = np.delete(y,idx,0)
-        xtr = np.delete(x,idx,0)
-        loss_te[k], w = learning_by_penalized_gradient(ytr, xtr, w, gamma, lambda_)
-        # accuracy
-        y_pred = predict_labels_log(w, xte)
-        accuracy[k] = np.sum(y_pred == yte) / len(yte)  
-        
-    return np.mean(accuracy), np.mean(loss_te)
-
-#Trial single function
 def find_best_parameters_general(labels, data, k_fold, seed, **param): 
     """Find the best parameters for ridge regression based on cross validation."""
     
@@ -360,60 +301,6 @@ def find_best_parameters_general(labels, data, k_fold, seed, **param):
 
     
     return best_degree, best_lambda, best_score, scores, best_loss
-
-def find_best_parameters(labels, data, k_fold, lambdas, degrees, seed): #rename with ridge????
-    """Find the best parameters for ridge regression based on cross validation."""
-    
-    #Initialize
-    k_idx = build_k_indices(labels, k_fold, seed)
-    loss_te = np.ones((len(degrees), len(lambdas)))
-    scores = np.ones((len(degrees), len(lambdas)))
-    
-    #Iterate over parameters
-    for degree_idx, degree in enumerate(degrees):
-        for lambda_idx, lambda_ in enumerate(lambdas):
-            scores[degree_idx, lambda_idx] = cross_validation(labels, data, k_idx, k_fold, lambda_, degree)
-            
-    #Select best parameters        
-    best_HP_idx = np.unravel_index(np.argmax(scores), np.shape(scores))
-    best_degree = degrees[best_HP_idx[0]]
-    best_lambda = lambdas[best_HP_idx[1]]
-    
-    #Best score
-    best_score = score[best_HP_idx[0], best_HP_idx[1]]
-    
-    return best_degree, best_lambda, best_score, scores
-
-
-def logistic_find_best_parameters(y, tx, lambdas, gamma, degrees):
-    """Find the best parameters for logistic regression based on cross validation.""" 
-    
-    #Initialize
-    loss_tr = np.zeros((len(lambdas), len(degrees)))
-    loss_te = np.zeros((len(lambdas), len(degrees)))
-    score = np.zeros((len(lambdas), len(degrees)))
-    
-    #Iterate over paramaters
-    for lambda_idx, lambda_ in enumerate(lambdas):
-        for degree_idx, degree in enumerate(degrees):          
-            poly_x = build_poly(tx, degree)
-            k_indices = build_k_indices(y, k_fold, seed)
-            mean_score, mean_loss_te = cross_validation_log(y, poly_x, k_indices, lambda_, gamma)        
-            score[lambda_idx, degree_idx] = mean_score
-            loss_te[lambda_idx, degree_idx] = mean_loss_te
-            
-    ratio = score/loss_te
-    
-    #Select best parameters
-    best_HP_idx = np.unravel_index(np.argmax(ratio), np.shape(ratio))
-    best_degree = degrees[best_HP_idx[1]]
-    best_lambda = lambdas[best_HP_idx[0]]
-    
-    #Best score & loss
-    best_score = score[best_HP_idx[0], best_HP_idx[1]]
-    best_loss = loss_te[best_HP_idx[0], best_HP_idx[1]]
-    
-    return best_lambda, best_degree, best_score, best_loss #change order
 
 def make_predictions(estimated_data, labels, estimated_data_te, best_lambda, best_degree):
     """Use the best parameters to make the prediction for ridge regression."""
