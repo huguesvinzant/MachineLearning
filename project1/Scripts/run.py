@@ -11,6 +11,7 @@ from implementations import *
 
         # ----  LOAD THE TRAIN AND TEST DATA  ----
 
+print('Loading train and test data')
 labels, raw_data, indices = load_csv_data('train.csv', sub_sample=False)
 labels_te, raw_data_te, indices_te = load_csv_data('test.csv', sub_sample=False)
 
@@ -19,6 +20,7 @@ labels_te, raw_data_te, indices_te = load_csv_data('test.csv', sub_sample=False)
 
 #Data division according to jets
 
+print('Data division according to jets')
 labels0, data0, labels1, data1, labels2, data2 = divide_data(labels, raw_data)
 labels0_te, data0_te, labels1_te, data1_te, labels2_te, data2_te = divide_data(labels_te, raw_data_te)
 
@@ -27,12 +29,20 @@ print('Test:', '0 jet', data0_te.shape, ', 1 jet', data1_te.shape, ', 2 or more 
 
 #Remove features with variance 0
 
-clean_data0, clean_data0_te = remove_novar_features(data0, data0_te)
-clean_data1, clean_data1_te = remove_novar_features(data1, data1_te)
-clean_data2, clean_data2_te = remove_novar_features(data2, data2_te)
+print('Remove features with null variance')
+clean_data0, clean_data0_te,no_var_columns0 = remove_novar_features(data0, data0_te)
+print('Columns of 0 jet with variance = 0 :', no_var_columns0) 
+print('New data shape of 0 jet :', clean_data0.shape) 
+clean_data1, clean_data1_te,no_var_columns1 = remove_novar_features(data1, data1_te)
+print('Columns of 1 jet with variance = 0 :', no_var_columns1)
+print('New data shape of 1 jet :', clean_data1.shape) 
+clean_data2, clean_data2_te,no_var_columns2 = remove_novar_features(data2, data2_te)
+print('Columns of 2 or more jets with variance = 0 :', no_var_columns2) 
+print('New data shape of 2 or more jets :', clean_data2.shape) 
 
 #Data standardization
 
+print('Data standardization')
 std_data0, mean0, std0 = standardize_train(clean_data0) 
 std_data0_te = standardize_test(clean_data0_te, mean0, std0)
 
@@ -44,26 +54,30 @@ std_data2_te = standardize_test(clean_data2_te, mean2, std2)
 
 #Column 0 estimation
 
-estimated_data0, weights_train0 = column_estimation_train(std_data0)
+print('Estimation of the Nan values in column 0')
+estimated_data0, weights_train0,samples0 = column_estimation_train(std_data0)
+print(samples0, 'NaN lines found in 0 jet') 
 estimated_data0_te = column_estimation_test(std_data0_te, weights_train0)
 
-estimated_data1, weights_train1 = column_estimation_train(std_data1)
+estimated_data1, weights_train1,samples1 = column_estimation_train(std_data1)
+print(samples1, 'NaN lines found in 1 jet') 
 estimated_data1_te = column_estimation_test(std_data1_te, weights_train1)
 
-estimated_data2, weights_train2 = column_estimation_train(std_data2)
+estimated_data2, weights_train2,samples2 = column_estimation_train(std_data2)
+print(samples2, 'NaN lines found in 2 or more jets') 
 estimated_data2_te = column_estimation_test(std_data2_te, weights_train2)
 
 
         # ----  RIDGE REGRESSION  ----
 
 #Define parameters
-degrees = [1]
-lambdas = np.logspace(-1, -1, 1)
+degrees = [9,12]
+lambdas = np.logspace(-7, -7, 1)
 k_fold = 10
 seed = 23
 
 #Find best parameters (cross validation)
-
+print('Finding best parameters with cross validation for Ridge Regression')
 best_degree0, best_lambda0, best_score0, _ = find_best_parameters_general(labels0, estimated_data0, k_fold, seed, lambdas=lambdas, degrees=degrees)
 print('0 jet:', 'Best degree:', best_degree0, 'Best lambda:', best_lambda0, 'Best score:', best_score0)
 
@@ -98,13 +112,14 @@ labels2[labels2 == -1] = 0
 
 #Define parameters
 
-degrees = np.arange(12)
-lambdas = np.logspace(-5, -1, 1)
+degrees = [3]
+lambdas = np.logspace(-1, -1, 1)
 k_fold = 10
 gamma = 1e-5
 
 #Find best parameters (cross validation)
 
+print('Finding best parameters with cross validation for Regularized Logistic Regression')
 best_degree0, best_lambda0, best_score0, _ = find_best_parameters_general(labels0, estimated_data0, k_fold, seed, lambdas=lambdas, degrees=degrees, gamma=gamma)
 print('0 jet:', 'Best degree:', best_degree0, 'Best lambda:', best_lambda0, 'Best score:', best_score0)
 
@@ -116,6 +131,7 @@ print('2 or more jets:', 'Best degree:', best_degree2, 'Best lambda:', best_lamb
 
 #Prediction 
 
+max_iters = 1000
 y_pred0 = make_predictions_log(estimated_data0, labels0, estimated_data0_te, best_lambda0, best_degree0, max_iters, gamma)
 y_pred1 = make_predictions_log(estimated_data1, labels1, estimated_data1_te, best_lambda1, best_degree1, max_iters, gamma)
 y_pred2 = make_predictions_log(estimated_data2, labels2, estimated_data2_te, best_lambda2, best_degree2, max_iters, gamma)

@@ -351,7 +351,6 @@ def find_null_variance_features(data):
     
     variance = np.var(data, axis = 0)
     no_var = np.where(variance == 0)
-    print('Columns with variance = 0 :', no_var) #PRINT TO MOVE TO RUN.PY
     
     return no_var
 
@@ -362,9 +361,8 @@ def remove_novar_features(data, data_te):
     no_var_columns = find_null_variance_features(data)
     clean_data = np.delete(data, no_var_columns, axis = 1)
     clean_data_te = np.delete(data_te, no_var_columns, axis = 1)
-    print('New data shape :', clean_data.shape) #PRINT TO MOVE TO RUN.PY
     
-    return clean_data, clean_data_te
+    return clean_data, clean_data_te,no_var_columns
 
 
 def meaningless_to_nan(tx):
@@ -410,8 +408,6 @@ def column_estimation_train(data):
     for sample in range(n_samples):
         if (np.isnan(data[sample,chosen_feature])):
             samples.append(sample)
-            
-    print(len(samples), 'NaN lines found') #PRINT TO MOVE TO RUN.PY
     
     #Extract data, build poly, train and predict values
     submatrix_bis = np.delete(submatrix, samples, axis = 0) 
@@ -422,7 +418,7 @@ def column_estimation_train(data):
     x_pred = np.dot(poly_te, weights_train)
     data[samples, chosen_feature] = x_pred
     
-    return data, weights_train
+    return data, weights_train,len(samples)
 
 def column_estimation_test(data, weights_train):
     """"Estimate the NaN in column 0 based on the other features AND the train weights."""
