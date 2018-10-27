@@ -63,18 +63,20 @@ seed = 23
 
 #Find best parameters (cross validation)
 
-best_degree0, best_lambda0, best_score0 = find_best_parameters(labels0, estimated_data0, k_fold, lambdas, degrees, seed)
+best_degree0, best_lambda0, best_score0, _ , _ = find_best_parameters_general(labels0, estimated_data0, k_fold, seed, lambdas=lambdas, degrees=degrees)
 print('jet0:', 'Best degree:', best_degree0, 'Best lambda:', best_lambda0, 'Best score:', best_score0)
-best_degree1, best_lambda1, best_score1 = find_best_parameters(labels1, estimated_data1, k_fold, lambdas, degrees, seed)
+
+best_degree1, best_lambda1, best_score1, _ , _ = find_best_parameters_general(labels1, estimated_data1, k_fold, seed, lambdas=lambdas, degrees=degrees)
 print('jet1:', 'Best degree:', best_degree1, 'Best lambda:', best_lambda1, 'Best score:', best_score1)
-best_degree2, best_lambda2, best_score2 = find_best_parameters(labels2, estimated_data2, k_fold, lambdas, degrees, seed)
+
+best_degree2, best_lambda2, best_score2, _ , _ = find_best_parameters_general(labels2, estimated_data2, k_fold, seed, lambdas=lambdas, degrees=degrees)
 print('jet2:', 'Best degree:', best_degree2, 'Best lambda:', best_lambda2, 'Best score:', best_score2)
 
 #Prediction
 
 y_pred0 = make_predictions(estimated_data0, labels0, estimated_data0_te, best_lambda0, best_degree0)
 y_pred1 = make_predictions(estimated_data1, labels1, estimated_data1_te, best_lambda1, best_degree1)
-y_pred2 = make_predictions(estimated_data2, labels2, estimated_data2_te, best_lambda2, best_degree0)
+y_pred2 = make_predictions(estimated_data2, labels2, estimated_data2_te, best_lambda2, best_degree2)
 
 #Submission
 
@@ -95,19 +97,22 @@ labels2[labels2 == -1] = 0
 
 #Define parameters
 
-degrees = [3]
+degrees = [2, 3]
 lambdas = np.logspace(-5, -7, 3)
+k_fold = 10
+gamma = 0.01
 max_iters = 100
-gamma = 1e-05
 
 #Find best parameters (cross validation)
 
-best_lambda0, best_degree0, best_accuracy0, best_loss0 = logistic_find_best_parameters(labels0, estimated_data0, lambdas, gamma, degrees)
-print('jet0:', 'Best degree:', best_degree0, 'Best lambda:', best_lambda0, 'Best score:', best_accuracy0, 'Best loss:', best_loss0)
-best_lambda1, best_degree1, best_accuracy1, best_loss1 = logistic_find_best_parameters(labels1, estimated_data1, lambdas, gamma, degrees)
-print('jet1:', 'Best degree:', best_degree1, 'Best lambda:', best_lambda1, 'Best score:', best_accuracy1, 'Best loss:', best_loss1)
-best_lambda2, best_degree2, best_accuracy2, best_loss2 = logistic_find_best_parameters(labels2, estimated_data2, lambdas, gamma, degrees)
-print('jet2:', 'Best degree:', best_degree2, 'Best lambda:', best_lambda2, 'Best score:', best_accuracy2, 'Best loss:', best_loss1)
+best_degree0, best_lambda0, best_score0, _, best_loss0 = find_best_parameters_general(labels0, estimated_data0, k_fold, seed, lambdas=lambdas, gamma=gamma, degrees=degrees)
+print('jet0:', 'Best degree:', best_degree0, 'Best lambda:', best_lambda0, 'Best score:', best_score0, 'Best loss:', best_loss0)
+
+best_degree1, best_lambda1, best_score1, _, best_loss1 = find_best_parameters_general(labels1, estimated_data1, k_fold, seed, lambdas=lambdas, gamma=gamma, degrees=degrees)
+print('jet1:', 'Best degree:', best_degree1, 'Best lambda:', best_lambda1, 'Best score:', best_score1, 'Best loss:', best_loss1)
+
+best_degree2, best_lambda2, best_score2, _, best_loss2 = find_best_parameters_general(labels2, estimated_data2, k_fold, seed, lambdas=lambdas, gamma=gamma, degrees=degrees)
+print('jet2:', 'Best degree:', best_degree2, 'Best lambda:', best_lambda2, 'Best score:', best_score2, 'Best loss:', best_loss2)
 
 #Prediction 
 
