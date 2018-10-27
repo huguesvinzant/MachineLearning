@@ -231,41 +231,50 @@ def build_k_indices(y, k_fold, seed):
     
     return np.array(k_indices)
 
-def cross_validation_general(y, x, k_indices, k_fold, **param): #make sure when you call param['...']
+def cross_validation_general(y, x, k_indices, k_fold, **param): 
     """Cross-validation for ridge regression."""
     
     score = []
     loss_te = np.zeros(k_fold)
+    if len(x.shape) == 1:
+        w = 0
+    else:
+        w = np.zeros(x.shape[1]) 
     
         #k-fold
     for k in range(k_fold):
-        # get k'th subgroup in test, others in train
-        y_te = y[k_indices[k]]
-        x_te = x[k_indices[k]]
-        list_tr = []
-        for l in range(k_fold):
-            if l != k:
-                list_tr.append(k_indices[l])
-                
-        y_tr = y[np.concatenate(list_tr)]
-        x_tr = x[np.concatenate(list_tr)]
-        
-        #form data with polynomial degree
-        poly_tr = build_poly(x_tr, param['degree'])
-        poly_te = build_poly(x_te, param['degree'])
-    
+
        # logistic
         if 'gamma' in param:
             
+            idx = k_indices[k]
+            y_te = y[idx]
             if len(x.shape) == 1:
-                w = 0
+                x_te = x[idx]
             else:
-                w = np.zeros(x.shape[1]) 
+                x_te = x[idx,:]
+            y_tr = np.delete(y, idx, 0)
+            x_tr = np.delete(x, idx, 0)
                 
             loss_te[k], w = learning_by_penalized_gradient(y_tr, x_tr, w, param['gamma'],                                                                                                       param['lambda_'])
             y_pred = predict_labels_log(w, x_te)
             score.append(np.sum(y_pred == y_te) / len(y_te))
         else:
+                    # get k'th subgroup in test, others in train
+            y_te = y[k_indices[k]]
+            x_te = x[k_indices[k]]
+            list_tr = []
+            for l in range(k_fold):
+                if l != k:
+                    list_tr.append(k_indices[l])
+                
+            y_tr = y[np.concatenate(list_tr)]
+            x_tr = x[np.concatenate(list_tr)]
+        
+            #form data with polynomial degree
+            poly_tr = build_poly(x_tr, param['degree'])
+            poly_te = build_poly(x_te, param['degree'])
+            #ridge regression
             w, _ = ridge_regression(y_tr, poly_tr, param['lambda_'])
             y_pred = predict_labels(w, poly_te)
             score.append(accuracy(y_pred, y_te))
@@ -288,18 +297,16 @@ def find_best_parameters_general(labels, data, k_fold, seed, **param):
             scores[degree_idx, lambda_idx], loss_te[degree_idx, lambda_idx]=                                                                        cross_validation_general(labels, data, k_idx, k_fold, 
                                                                     lambda_=lambda_, degree=degree)
             if 'gamma' in param:
-                scores[degree_idx, lambda_idx], loss_te [degree_idx, lambda_idx]=                                                                    cross_validation_general(labels, data, k_idx, k_fold, 
-                                                                    lambda_=lambda_, degree=degree, gamma=param['gamma'])
-    #Select best parameters        
+                    scores[degree_idx, lambda_idx], loss_te[degree_idx, lambda_idx] =                                                               cross_validation_general(labels, data, k_idx, k_fold,                                                                       lambda_=lambda_, degree=degree, gamma=param['gamma'])
+                    
+    #Select best parameters 
     best_HP_idx = np.unravel_index(np.argmax(scores), np.shape(scores))
     best_degree = param['degrees'][best_HP_idx[0]]
     best_lambda = param['lambdas'][best_HP_idx[1]]
-    
     #Best score
     best_score = scores[best_HP_idx[0], best_HP_idx[1]]
     best_loss = loss_te[best_HP_idx[0], best_HP_idx[1]]
 
-    
     return best_degree, best_lambda, best_score, scores, best_loss
 
 def make_predictions(estimated_data, labels, estimated_data_te, best_lambda, best_degree):

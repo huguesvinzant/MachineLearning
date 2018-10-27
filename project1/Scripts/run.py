@@ -56,17 +56,17 @@ estimated_data2_te = column_estimation_test(std_data2_te, weights_train2)
         # ----  RIDGE REGRESSION  ----
 
 #Define parameters
-degrees = [9]
-lambdas = np.logspace(-1, -1, 1)
+degrees = np.arange(1)
+lambdas = np.logspace(-5, -1, 1)
 k_fold = 10
 seed = 23
 
 #Find best parameters (cross validation)
 
-best_degree0, best_lambda0, best_score0, _ , _ = find_best_parameters_general(labels0, estimated_data0, k_fold, seed, lambdas=lambdas, degrees=degrees)
+best_degree0, best_lambda0, best_score0, _, _ = find_best_parameters_general(labels0, estimated_data0, k_fold, seed, lambdas=lambdas, degrees=degrees)
 print('jet0:', 'Best degree:', best_degree0, 'Best lambda:', best_lambda0, 'Best score:', best_score0)
 
-best_degree1, best_lambda1, best_score1, _ , _ = find_best_parameters_general(labels1, estimated_data1, k_fold, seed, lambdas=lambdas, degrees=degrees)
+best_degree1, best_lambda1,  best_score1, _, _ = find_best_parameters_general(labels1, estimated_data1, k_fold, seed, lambdas=lambdas, degrees=degrees)
 print('jet1:', 'Best degree:', best_degree1, 'Best lambda:', best_lambda1, 'Best score:', best_score1)
 
 best_degree2, best_lambda2, best_score2, _ , _ = find_best_parameters_general(labels2, estimated_data2, k_fold, seed, lambdas=lambdas, degrees=degrees)
@@ -97,15 +97,15 @@ labels2[labels2 == -1] = 0
 
 #Define parameters
 
-degrees = [2, 3]
-lambdas = np.logspace(-5, -7, 3)
+degrees = np.arange(12)
+lambdas = np.logspace(-5, -1, 1)
 k_fold = 10
-gamma = 0.01
-max_iters = 100
+gamma = 0.001
+max_iters = 1000
 
 #Find best parameters (cross validation)
 
-best_degree0, best_lambda0, best_score0, _, best_loss0 = find_best_parameters_general(labels0, estimated_data0, k_fold, seed, lambdas=lambdas, gamma=gamma, degrees=degrees)
+best_degree0, best_lambda0, best_score0, _, best_loss0 = find_best_parameters_general(labels0, estimated_data0, k_fold, seed, lambdas=lambdas, degrees=degrees, gamma=gamma)
 print('jet0:', 'Best degree:', best_degree0, 'Best lambda:', best_lambda0, 'Best score:', best_score0, 'Best loss:', best_loss0)
 
 best_degree1, best_lambda1, best_score1, _, best_loss1 = find_best_parameters_general(labels1, estimated_data1, k_fold, seed, lambdas=lambdas, gamma=gamma, degrees=degrees)
@@ -129,4 +129,4 @@ labels_te[np.where(raw_data_te[:,22] > 1)[0]] = y_pred2
 create_csv_submission(indices_te, labels_te, 'jet_log.csv')
 
 print('Execution completed. Submission files may found in the local folder alongside with run.py.')
-print('Authors: Gaia Carparelli, Hugues Vinzant, Axel Bisi.')
+print('Authors: Gaia Carparelli, Hugues Vinzant, Axel Bisi - MA1 Life Sciences Engineering.')
