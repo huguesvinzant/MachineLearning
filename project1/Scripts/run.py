@@ -75,7 +75,7 @@ estimated_data2_te = column_estimation_test(std_data2_te, weights_train2)
 
 #Define parameters
 degrees = [9,12]
-lambdas = np.logspace(-7, -7, 1)
+lambdas = np.logspace(-4, -3, 2)
 k_fold = 10
 seed = 23
 
@@ -115,8 +115,8 @@ labels2[labels2 == -1] = 0
 
 #Define parameters
 
-degrees = [3]
-lambdas = np.logspace(-1, -1, 1)
+degrees = [1,3]
+lambdas = np.logspace(-1, -3, 2)
 k_fold = 10
 gamma = 1e-5
 
