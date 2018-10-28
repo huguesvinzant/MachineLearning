@@ -365,10 +365,10 @@ def remove_novar_features(data, data_te):
     return clean_data, clean_data_te,no_var_columns
 
 
-def meaningless_to_nan(tx):
+def meaningless_to_zero(tx):
     """Remove meaningless -999 values by converting them into NaN."""
     
-    tx[tx == -999] = np.NaN
+    tx[tx == -999] = 0
     
     return tx
 
@@ -376,7 +376,7 @@ def meaningless_to_nan(tx):
 def standardize_train(train_data):
     """Standardize the train data along the feature axis."""
     
-    train_data = meaningless_to_nan(train_data)
+    train_data = meaningless_to_zero(train_data)
     mean_data = np.nanmean(train_data, axis = 0)
     centered_data = train_data - mean_data
     std_data = np.nanstd(centered_data, axis = 0)
@@ -388,7 +388,7 @@ def standardize_train(train_data):
 def standardize_test(test_data, mean_train, std_train):
     """Standardize the test data along the feature axis with known means and standard deviations."""
     
-    test_data = meaningless_to_nan(test_data)
+    test_data = meaningless_to_zero(test_data)
     standardized_data_te = (test_data - mean_train) / std_train
     
     return standardized_data_te
