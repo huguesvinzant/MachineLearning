@@ -32,7 +32,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):  # does not seem to w
     weights = initial_w 
     
     for n_iter in range(max_iters):
-        for y_batch, tx_batch in batch_iter(y, tx, batch_size=batch_size, num_batches=1):
+        for y_batch, tx_batch in batch_iter(y, tx, batch_size=1, num_batches=1):
             # compute a stochastic gradient
             grad, _ = compute_stoch_gradient(y_batch, tx_batch, weights)
             # update weights through the stochastic gradient update
