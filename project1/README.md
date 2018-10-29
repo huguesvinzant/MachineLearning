@@ -24,18 +24,18 @@ To run this machine learning system, please proceed along the steps:
 
 #### REPRODUCING RESULTS:
 
-The executable run.py contains the final model (model B) which produces the best classification performance. It is our submitted model. However, to reproduce results of the other models(models A, C & D), one must decomment respectively parts of the file run.py, while commenting the other parts.
+The executable run.py contains the final model (model B) which produces the best classification performance. It is our submitted model. However, to reproduce results of the other models(models A, C & D), the user is asked which model they want to use by entering the appropriate model (case-sensitive):
 
-- To obtain model A, decomment Part A or run.py and comment all others parts, that is Part B, Part C and Part D. 
+- To obtain model A, press 'A'. 
 Type on the shell : python run.py
 
-- To obtain model B, decomment Part B or run.py and comment all others parts, that is Part A, Part C and Part D. 
+- To obtain model B, press 'B'. 
 Type on the shell : python run.py
 
-- To obtain model C, decomment Part C or run.py and comment all others parts, that is Part A, Part B and Part D. 
+- To obtain model C, press 'C'. 
 Type on the shell : python run.py
 
-- To obtain model D, decomment Part D or run.py and comment all others parts, that is Part A, Part B and Part C. 
+- To obtain model D, press 'D'. 
 Type on the shell : python run.py
 
 #### CODE ARCHITECTURE:
