@@ -111,6 +111,25 @@ def reg_logistic_regression(y, x, lambda_, initial_w, max_iters, gamma):
 ************************ Utilitaries **************************
 ************************************************************'''
 
+def compute_gradient(y, tx, w):
+    """Compute the gradient."""
+    err = y - tx.dot(w)
+    grad = -tx.T.dot(err) / len(err)
+    return grad, err
+
+
+def compute_stoch_gradient(y, tx, w):
+    """Compute a stochastic gradient."""
+    err = y - tx.dot(w)
+    grad = -tx.T.dot(err) / len(err)
+    return grad, err
+
+
+def calculate_mse(e):
+    """Calculate the mse for vector e."""
+    return 1/2*np.mean(e**2)
+
+
 def compute_loss(y, tx, w):
     """Calculate the MSE loss."""
     
