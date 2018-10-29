@@ -170,5 +170,5 @@ if (model == 'C' or model == 'D'):
 print('-----')
 print('EXECUTION COMPLETED: Submission files may found in the local folder alongside with run.py.')
 print('-----')
-print('Authors: Gaia Carparelli, Hugues Vinzant, Axel Bisi - MA1 Life Sciences Engineering.')
+print('Authors: Axel Bisi, Gaia Carparelli, Hugues Vinzant - MA1 Life Sciences Engineering.')
 print('-----')
