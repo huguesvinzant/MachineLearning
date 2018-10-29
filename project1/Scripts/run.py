@@ -77,15 +77,15 @@ if (model == 'A' or model == 'C'):
     estimated_data2_te = column_estimation_test(std_data2_te, weights_train2)
 
 if (model == 'B' or model == 'D'):
-    print('Data processing...: No column 0 estimation')
+    print('Data processing...: Already put meaningless values of column 0 to 0')
     estimated_data0 = std_data0
     estimated_data0_te = std_data0_te
     
     estimated_data1 = std_data1
     estimated_data1_te = std_data1_te
     
-    estimated_data1 = std_data0
-    estimated_data1_te = std_data1_te
+    estimated_data2 = std_data2
+    estimated_data2_te = std_data2_te
 	
 
         # ----  RIDGE REGRESSION  ----
