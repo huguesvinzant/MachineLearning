@@ -119,8 +119,12 @@ if (model == 'A' or model == 'B'):
     labels_te[np.where(raw_data_te[:,22] == 0)[0]] = y_pred0
     labels_te[np.where(raw_data_te[:,22] == 1)[0]] = y_pred1
     labels_te[np.where(raw_data_te[:,22] > 1)[0]] = y_pred2
-
-    create_csv_submission(indices_te, labels_te, 'jet_ridge.csv')
+    
+    if (model == 'A'):
+        create_csv_submission(indices_te, labels_te, 'model_A.csv')
+        
+    if (model == 'B'):
+        create_csv_submission(indices_te, labels_te, 'model_B_FINAL.csv')
 
 
         # ----  LOGISTIC REGRESSION  ----
@@ -165,7 +169,11 @@ if (model == 'C' or model == 'D'):
     labels_te[np.where(raw_data_te[:,22] == 1)[0]] = y_pred1
     labels_te[np.where(raw_data_te[:,22] > 1)[0]] = y_pred2
 
-    create_csv_submission(indices_te, labels_te, 'jet_log.csv')
+    if (model == 'C'):
+        create_csv_submission(indices_te, labels_te, 'model_C.csv')
+        
+    if (model == 'D'):
+        create_csv_submission(indices_te, labels_te, 'model_D.csv')
 	
 print('-----')
 print('EXECUTION COMPLETED: Submission files may found in the local folder alongside with run.py.')
