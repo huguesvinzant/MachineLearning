@@ -77,7 +77,7 @@ if (model == 'A' or model == 'C'):
     estimated_data2_te = column_estimation_test(std_data2_te, weights_train2)
 
 if (model == 'B' or model == 'D'):
-    print('Data processing...: Already put meaningless values of column 0 to 0')
+    print('Data processing...: Meaningless values of column 0 already put to 0 during standardization')
     estimated_data0 = std_data0
     estimated_data0_te = std_data0_te
     
