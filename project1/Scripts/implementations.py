@@ -369,9 +369,9 @@ def standardize_train(train_data, model):
     """Standardize the train data along the feature axis."""
     
     if(model == A or model == C):
-		train_data[train_data == -999] = np.NaN
+        train_data[train_data == -999] = np.NaN
 	if(model == B or model == D):
-		train_data[train_data == -999] = 0
+        train_data[train_data == -999] = 0
     mean_data = np.nanmean(train_data, axis = 0)
     centered_data = train_data - mean_data
     std_data = np.nanstd(centered_data, axis = 0)
@@ -384,9 +384,9 @@ def standardize_test(test_data, mean_train, std_train, model):
     """Standardize the test data along the feature axis with known means and standard deviations."""
     
     if (model == A or model == C):
-		train_data[train_data == -999] = np.nan
+        train_data[train_data == -999] = np.nan
 	if (model == B or model == D):
-		train_data[train_data == -999] = 0
+        train_data[train_data == -999] = 0
     standardized_data_te = (test_data - mean_train) / std_train
     
     return standardized_data_te
