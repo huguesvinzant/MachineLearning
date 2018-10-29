@@ -43,10 +43,10 @@ clean_data2, clean_data2_te,no_var_columns2 = remove_novar_features(data2, data2
 print('Data processing...: Columns of "2 or more jets" with variance = 0 :', no_var_columns2) 
 print('Data processing...: New data shape  "2 or more jets" :', clean_data2.shape) 
 
-model = input("Which model (A, B, C or D) do you want to use? (The final model is model B.) ")
+model = input("Which model (A, B, C or D) do you want to use? (The final model is model B.) Model: ")
 while (model != 'A' and model != 'B' and model != 'C' and model != 'D'):
     print('You have to enter A, B, C or D as a capital letter.')
-    model = input("Which model (A, B, C or D) do you want to use? ")
+    model = input("Which model (A, B, C or D) do you want to use? Model: ")
 
 
 #Data standardization
