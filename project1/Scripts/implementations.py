@@ -200,7 +200,7 @@ def learning_by_gradient_descent(y, tx, w, gamma):
     
     loss = calculate_logistic_loss(y, tx, w)
     grad = calculate_logistic_gradient(y, tx, w)
-    new_w -= gamma * grad
+    new_w = w - gamma * grad
     
     return loss, new_w
 
