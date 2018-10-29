@@ -368,9 +368,9 @@ def remove_novar_features(data, data_te):
 def standardize_train(train_data, model):
     """Standardize the train data along the feature axis."""
     
-    if(model == A or model == C):
+    if (model == 'A' or model == 'C'):
         train_data[train_data == -999] = np.NaN
-	if(model == B or model == D):
+    if (model == 'B' or model == 'D'):
         train_data[train_data == -999] = 0
     mean_data = np.nanmean(train_data, axis = 0)
     centered_data = train_data - mean_data
@@ -383,10 +383,10 @@ def standardize_train(train_data, model):
 def standardize_test(test_data, mean_train, std_train, model):
     """Standardize the test data along the feature axis with known means and standard deviations."""
     
-    if (model == A or model == C):
-        train_data[train_data == -999] = np.nan
-	if (model == B or model == D):
-        train_data[train_data == -999] = 0
+    if (model == 'A' or model == 'C'):
+        test_data[test_data == -999] = np.nan
+    if (model == 'B' or model == 'D'):
+        test_data[test_data == -999] = 0
     standardized_data_te = (test_data - mean_train) / std_train
     
     return standardized_data_te
@@ -416,7 +416,7 @@ def column_estimation_train(data):
     x_pred = np.dot(poly_te, weights_train)
     data[samples, chosen_feature] = x_pred
     
-    return data, weights_train,len(samples)
+    return data, weights_train
 
 def column_estimation_test(data, weights_train):
     """"Estimate the NaN in column 0 based on the other features AND the train weights."""

@@ -43,7 +43,10 @@ clean_data2, clean_data2_te,no_var_columns2 = remove_novar_features(data2, data2
 print('Data processing...: Columns of "2 or more jets" with variance = 0 :', no_var_columns2) 
 print('Data processing...: New data shape  "2 or more jets" :', clean_data2.shape) 
 
-model = input("Which model (A, B, C or D) do you want to use? ")
+model = input("Which model (A, B, C or D) do you want to use? (The final model is model B.) ")
+while (model != 'A' and model != 'B' and model != 'C' and model != 'D'):
+    print('You have to enter A, B, C or D as a capital letter.')
+    model = input("Which model (A, B, C or D) do you want to use? ")
 
 
 #Data standardization
@@ -62,7 +65,7 @@ std_data2_te = standardize_test(clean_data2_te, mean2, std2, model)
 
 #Column 0 estimation or not
 
-if (model == A or model == C):
+if (model == 'A' or model == 'C'):
     print('Data processing...: Estimation of column 0 using least squares')
     estimated_data0, weights_train0 = column_estimation_train(std_data0)
     estimated_data0_te = column_estimation_test(std_data0_te, weights_train0)
@@ -73,7 +76,7 @@ if (model == A or model == C):
     estimated_data2, weights_train2 = column_estimation_train(std_data2)
     estimated_data2_te = column_estimation_test(std_data2_te, weights_train2)
 
-if (model == B or model == D):
+if (model == 'B' or model == 'D'):
     print('Data processing...: No column 0 estimation')
     estimated_data0 = std_data0
     estimated_data0_te = std_data0_te
@@ -87,7 +90,7 @@ if (model == B or model == D):
 
         # ----  RIDGE REGRESSION  ----
 
-if (model == A or model == B):
+if (model == 'A' or model == 'B'):
     #Define parameters
     degrees = [9,10,11,12,13]
     lambdas = np.logspace(-1, -5, 5)
@@ -122,7 +125,7 @@ if (model == A or model == B):
 
         # ----  LOGISTIC REGRESSION  ----
 
-if (model == C or model == D):
+if (model == 'C' or model == 'D'):
     #Labels conversion to binary values
 
     labels0[labels0 == -1] = 0
@@ -135,6 +138,7 @@ if (model == C or model == D):
     lambdas = np.logspace(-1, -5, 5)
     k_fold = 10
     gamma = 1e-5
+    seed = 23
 
     #Find best parameters (cross validation)
 
