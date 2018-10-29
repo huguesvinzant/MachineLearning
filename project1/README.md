@@ -17,23 +17,24 @@ To run this machine learning system, please proceed along the steps:
 	If the names of the .csv data files differ from the ones present in the part "----  LOAD THE DATA  ----" of run.py, change the names accordingly.
 
 	Step 3: Now, to run the code from the shell type: python run.py 
+	You will be asked to choose a model.
 
 	Step 4: Wait for the execution until "Execution completed." appears on your terminal.
 	
-	Step 5: The submission .csv file for evaluation may be found in the same folder.
+	Step 5: The submission .csv file for evaluation may be found in the same folder as run.py.
 
 
 #### REPRODUCING RESULTS:
 
-The executable run.py contains the final model (model B) which produces the best classification performance. It is our submitted model. However, to reproduce results of the other models(models A, C & D), the user is asked which model they want to use by entering the appropriate model (case-sensitive):
+The executable run.py contains the final model (model B) which produces the best classification performance. It is our submitted model. However, to reproduce results of the other models (models A, C & D), the user is asked which model they want to use by typing the appropriate model (case-sensitive):
 
-- To obtain model A, press 'A'. 
+- To obtain model A, execute run.py and press 'A'. 
 
-- To obtain model B, press 'B'. 
+- To obtain model B, execute run.py and press 'B'. 
 
-- To obtain model C, press 'C'. 
+- To obtain model C, execute run.py and press 'C'. 
 
-- To obtain model D, press 'D'. 
+- To obtain model D, execute run.py and press 'D'. 
 
 #### CODE ARCHITECTURE:
 
