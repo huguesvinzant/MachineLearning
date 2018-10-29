@@ -10,7 +10,8 @@ _Group : Axel Bisi, Gaia Carparelli & Hugues Vinzant_
 
 To run this machine learning system, please proceed along the steps:
 
-	Step 1: Download the code.zip file from the online submission system (https://epfml17.hotcrp.com). The .zip file contains an executably run.py, an implementations.py file and proj1_helpers.py file.
+	Step 1: Download the code.zip file from the online submission system (https://epfml17.hotcrp.com). 
+	The .zip file contains an executably run.py, an implementations.py file and proj1_helpers.py file.
 	
 	Step 2: Make sure that .csv data files are in the same folder as the file run.py. 
 	If the names of the .csv data files differ from the ones present in the part "----  LOAD THE DATA  ----" of run.py, change the names accordingly.
