@@ -33,13 +33,13 @@ print('Data processing...: Test:', '0 jet', data0_te.shape, ', 1 jet', data1_te.
 #Remove features with variance 0
 
 print('Data processing...: Remove features with null variance')
-clean_data0, clean_data0_te,no_var_columns0 = remove_novar_features(data0, data0_te)
+clean_data0, clean_data0_te, no_var_columns0 = remove_novar_features(data0, data0_te)
 print('Data processing...: Columns of "0 jet" with variance = 0 :', no_var_columns0) 
 print('Data processing...: New data shape "0 jet" :', clean_data0.shape) 
-clean_data1, clean_data1_te,no_var_columns1 = remove_novar_features(data1, data1_te)
+clean_data1, clean_data1_te, no_var_columns1 = remove_novar_features(data1, data1_te)
 print('Data processing...: Columns of "1 jet" with variance = 0 :', no_var_columns1)
 print('Data processing...: New data shape "1 jet" :', clean_data1.shape) 
-clean_data2, clean_data2_te,no_var_columns2 = remove_novar_features(data2, data2_te)
+clean_data2, clean_data2_te, no_var_columns2 = remove_novar_features(data2, data2_te)
 print('Data processing...: Columns of "2 or more jets" with variance = 0 :', no_var_columns2) 
 print('Data processing...: New data shape  "2 or more jets" :', clean_data2.shape) 
 
