@@ -3,7 +3,7 @@ Projects of CS-433 - Machine Learning, EPFL (Fall 2018).
 
 _Class Project 1_
 
-_Group : Gaia Carparelli, Hugues Vinzant & Axel Bisi_
+_Group : Axel Bisi, Gaia Carparelli & Hugues Vinzant_
 
 
 #### RUNNING INSTRUCTIONS:
