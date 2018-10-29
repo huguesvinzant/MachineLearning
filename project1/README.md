@@ -29,16 +29,16 @@ To run this machine learning system, please proceed along the steps:
 The executable run.py contains the final model (model B) which produces the best classification performance. It is our submitted model. However, to reproduce results of the other models (models A, C & D), the user is asked which model they want to use by typing the appropriate model (case-sensitive):
 
 - To obtain model A, execute run.py and press 'A'.
-  The generated predictions can be found in the model_A.csv
+  The generated predictions can be found in the model_A.csv.
 
 - To obtain model B, execute run.py and press 'B'. 
-  The generated predictions can be found in the model_B_FINAL.csv
+  The generated predictions can be found in the model_B_FINAL.csv.
 
 - To obtain model C, execute run.py and press 'C'.
-  The generated predictions can be found in the model_C.csv
+  The generated predictions can be found in the model_C.csv.
 
 - To obtain model D, execute run.py and press 'D'.
-  The generated predictions can be found in the model_D.csv
+  The generated predictions can be found in the model_D.csv.
 
 #### CODE ARCHITECTURE:
 
