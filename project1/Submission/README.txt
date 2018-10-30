@@ -10,8 +10,8 @@ _Group : Axel Bisi, Gaia Carparelli & Hugues Vinzant_
 
 To run this machine learning system, please proceed along the steps:
 
-	Step 0: Make sure you have Python 3 or more. 
-	
+	Step 0 : Make sure you have Python 3 or more. 
+
 	Step 1: Download the code.zip file from the online submission system (https://epfml17.hotcrp.com). 
 	The .zip file contains an executably run.py, an implementations.py file and proj1_helpers.py file.
 	
